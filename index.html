@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AntiNature — Free Online Tools | No Login, No Ads</title>
+  <meta name="description" content="AntiNature is a free, privacy-first platform with browser-based utility tools. Word counter, password generator, QR codes, color picker, and more. No login. No tracking. No ads.">
+  <meta name="keywords" content="free online tools, word counter, password generator, QR code generator, color picker, text case converter, no login tools">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+  <style>
+    .hero { text-align: center; padding: var(--space-3xl) 0 var(--space-xl); }
+    .hero__title { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); line-height: 1.12; margin-bottom: var(--space-md); }
+    .hero__subtitle { font-size: 1.05rem; color: var(--text-secondary); max-width: 520px; margin: 0 auto var(--space-lg); line-height: 1.65; }
+    .hero__stats { display: flex; justify-content: center; gap: var(--space-xl); margin-top: var(--space-lg); flex-wrap: wrap; }
+    .hero__stat { text-align: center; }
+    .hero__stat-value { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+    .hero__stat-label { font-size: 0.72rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-md); margin-top: var(--space-md); }
+    .tool-card { padding: var(--space-lg); text-decoration: none; display: block; transition: transform var(--transition-base), box-shadow var(--transition-base); }
+    .tool-card:hover { transform: translateY(-3px); }
+    .tool-card__icon { font-size: 1.5rem; margin-bottom: var(--space-sm); display: block; }
+    .tool-card__name { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-xs); }
+    .tool-card__desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.55; }
+    .section-title { font-size: 0.78rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-md); margin-top: var(--space-2xl); }
+    .cta-section { text-align: center; margin: var(--space-3xl) 0 var(--space-xl); padding: var(--space-2xl); }
+    .cta-section h2 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-sm); }
+    .cta-section p { font-size: 0.92rem; color: var(--text-secondary); max-width: 450px; margin: 0 auto; line-height: 1.6; }
+    @media (max-width: 768px) {
+      .hero__title { font-size: 1.75rem; }
+      .hero__subtitle { font-size: 0.92rem; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .hero__stats { gap: var(--space-lg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======= NAVBAR ======= -->
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <!-- ======= HERO ======= -->
+  <main class="page">
+    <div class="container">
+      <section class="hero animate-in">
+        <h1 class="hero__title">Every tool you need.<br>One place. No login.</h1>
+        <p class="hero__subtitle">
+          Free online utilities for text, images, PDFs, and more.
+          Fast, private, and works entirely in your browser.
+        </p>
+        <div class="hero__stats">
+          <div class="hero__stat"><div class="hero__stat-value">10+</div><div class="hero__stat-label">Free Tools</div></div>
+          <div class="hero__stat"><div class="hero__stat-value">0</div><div class="hero__stat-label">Ads</div></div>
+          <div class="hero__stat"><div class="hero__stat-value">0</div><div class="hero__stat-label">Data Collected</div></div>
+        </div>
+      </section>
+
+      <!-- TEXT TOOLS -->
+      <section id="text-tools">
+        <div class="section-title animate-in">Text Tools</div>
+        <div class="tools-grid">
+          <a href="tools/text/word-counter.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">𝐖</span>
+            <div class="tool-card__name">Word & Character Counter</div>
+            <div class="tool-card__desc">Count words, characters, sentences, paragraphs, and get reading time estimates.</div>
+          </a>
+          <a href="tools/text/case-converter.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">Aa</span>
+            <div class="tool-card__name">Text Case Converter</div>
+            <div class="tool-card__desc">Convert text to UPPERCASE, lowercase, Title Case, camelCase, snake_case, and more.</div>
+          </a>
+          <a href="tools/text/fancy-text.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">𝓕</span>
+            <div class="tool-card__name">Fancy Text Generator</div>
+            <div class="tool-card__desc">Generate stylish Unicode text for Instagram bios, WhatsApp status, and more.</div>
+          </a>
+          <a href="tools/text/lorem-ipsum.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">¶</span>
+            <div class="tool-card__name">Lorem Ipsum Generator</div>
+            <div class="tool-card__desc">Generate placeholder text — paragraphs, sentences, or words for your designs.</div>
+          </a>
+        </div>
+      </section>
+
+      <!-- GENERATORS -->
+      <section id="generators">
+        <div class="section-title animate-in">Generators</div>
+        <div class="tools-grid">
+          <a href="tools/generators/password.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">🔐</span>
+            <div class="tool-card__name">Password Generator</div>
+            <div class="tool-card__desc">Generate strong, secure passwords with custom length and character options.</div>
+          </a>
+          <a href="tools/generators/qr-code.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">▣</span>
+            <div class="tool-card__name">QR Code Generator</div>
+            <div class="tool-card__desc">Create QR codes for any text, URL, or data. Download as PNG.</div>
+          </a>
+        </div>
+      </section>
+
+      <!-- CONVERTERS -->
+      <section id="converters">
+        <div class="section-title animate-in">Converters</div>
+        <div class="tools-grid">
+          <a href="tools/converters/color-picker.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">🎨</span>
+            <div class="tool-card__name">Color Picker & Converter</div>
+            <div class="tool-card__desc">Pick colors and convert between HEX, RGB, HSL, and RGBA formats.</div>
+          </a>
+          <a href="tools/converters/number-to-words.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">#→</span>
+            <div class="tool-card__name">Number to Words</div>
+            <div class="tool-card__desc">Convert numbers to words in Indian (Lakhs, Crores) and International systems.</div>
+          </a>
+          <a href="tools/converters/url-encoder.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">🔗</span>
+            <div class="tool-card__name">URL Encoder / Decoder</div>
+            <div class="tool-card__desc">Encode or decode URLs for safe use in web addresses.</div>
+          </a>
+        </div>
+      </section>
+
+      <!-- UTILITY -->
+      <section id="utility">
+        <div class="section-title animate-in">Utility</div>
+        <div class="tools-grid">
+          <a href="tools/utility/age-calculator.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">🎂</span>
+            <div class="tool-card__name">Age Calculator</div>
+            <div class="tool-card__desc">Calculate your exact age in years, months, days. See next birthday countdown.</div>
+          </a>
+          <a href="tools/utility/notepad.html" class="glass tool-card animate-in">
+            <span class="tool-card__icon">📝</span>
+            <div class="tool-card__name">Online Notepad</div>
+            <div class="tool-card__desc">Quick scratchpad that auto-saves to your browser. Private, no cloud.</div>
+          </a>
+        </div>
+      </section>
+
+      <!-- CTA SECTION -->
+      <section class="glass cta-section animate-in">
+        <h2>More tools coming soon</h2>
+        <p>We're continuously adding new tools. Have a suggestion? <a href="pages/contact.html" style="color:var(--accent);text-decoration:underline;">Let us know</a> what you'd like to see next.</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="footer">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-md);">
+        <p>© 2026 <a href="index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p>
+        <div style="display:flex;gap:var(--space-md);font-size:0.82rem;">
+          <a href="pages/about.html" style="color:var(--text-tertiary);text-decoration:none;">About</a>
+          <a href="pages/privacy.html" style="color:var(--text-tertiary);text-decoration:none;">Privacy</a>
+          <a href="pages/contact.html" style="color:var(--text-tertiary);text-decoration:none;">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

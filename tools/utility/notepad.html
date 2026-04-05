@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Notepad — AntiNature</title>
+  <meta name="description" content="Quick scratchpad that auto-saves to your browser. No login, no cloud — your notes stay private on your device.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+  <style>
+    .notepad-textarea { width:100%; min-height: 60vh; padding: var(--space-lg); background: transparent; border: none; color: var(--text-primary); font-family: var(--font-family); font-size: 1rem; line-height: 1.8; resize: none; outline: none; }
+    .notepad-footer { display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); border-top: 1px solid var(--divider); font-size: 0.75rem; color: var(--text-tertiary); flex-wrap: wrap; gap: var(--space-sm); }
+  </style>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Utility</a><span class="page-header__breadcrumb-sep">›</span><span>Notepad</span></div>
+      <h1 class="page-header__title">Online Notepad</h1>
+      <p class="page-header__subtitle">A quick scratchpad that auto-saves to your browser. Private, no cloud.</p>
+    </header>
+
+    <div class="glass glass--static animate-in" style="overflow:hidden;">
+      <div style="display:flex;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);border-bottom:1px solid var(--divider);flex-wrap:wrap;">
+        <button class="btn btn--small" id="btn-download">↓ Download .txt</button>
+        <button class="btn btn--small" id="btn-copy">⧉ Copy All</button>
+        <button class="btn btn--small" id="btn-clear">✕ Clear</button>
+      </div>
+      <textarea class="notepad-textarea" id="notepad" placeholder="Start typing your notes…" spellcheck="true"></textarea>
+      <div class="notepad-footer">
+        <span id="save-status">Auto-saved</span>
+        <span id="word-count">0 words · 0 characters</span>
+      </div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var np=document.getElementById('notepad');
+    var status=document.getElementById('save-status');
+    var wc=document.getElementById('word-count');
+    var KEY='antinature-notepad';
+    var saveTimer;
+
+    np.value=localStorage.getItem(KEY)||'';
+    updateCount();
+
+    np.addEventListener('input',function(){
+      updateCount();
+      status.textContent='Saving…';
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(function(){
+        localStorage.setItem(KEY,np.value);
+        status.textContent='Auto-saved';
+      },500);
+    });
+
+    function updateCount(){
+      var t=np.value;
+      var words=t.trim()?t.trim().split(/\s+/).length:0;
+      wc.textContent=words+' words · '+t.length+' characters';
+    }
+
+    document.getElementById('btn-copy').addEventListener('click',function(){
+      navigator.clipboard.writeText(np.value);
+      this.textContent='✓ Copied';var b=this;setTimeout(function(){b.textContent='⧉ Copy All';},1500);
+    });
+
+    document.getElementById('btn-clear').addEventListener('click',function(){
+      if(confirm('Clear all notes?')){np.value='';localStorage.setItem(KEY,'');updateCount();}
+    });
+
+    document.getElementById('btn-download').addEventListener('click',function(){
+      var blob=new Blob([np.value],{type:'text/plain'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='antinature-notes.txt';
+      a.click();
+    });
+  })();
+  </script>
+</body>
+</html>

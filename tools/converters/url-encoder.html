@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Encoder / Decoder — AntiNature</title>
+  <meta name="description" content="Encode or decode URLs and text for safe use in web addresses. Free online URL encoder/decoder — no login required.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container" style="max-width:800px;">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Converters</a><span class="page-header__breadcrumb-sep">›</span><span>URL Encoder</span></div>
+      <h1 class="page-header__title">URL Encoder / Decoder</h1>
+      <p class="page-header__subtitle">Encode or decode text for safe use in URLs.</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <div style="font-size:0.8rem;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">Input</div>
+      <textarea class="textarea" id="input" placeholder="Enter text or URL to encode/decode…" rows="4"></textarea>
+      <div style="margin:var(--space-md) 0;display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+        <button class="btn btn--accent" id="btn-encode">Encode →</button>
+        <button class="btn btn--accent" id="btn-decode">← Decode</button>
+        <button class="btn" id="btn-encode-comp">Encode Component</button>
+        <button class="btn" id="btn-swap">⇅ Swap</button>
+      </div>
+      <div style="font-size:0.8rem;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:var(--space-sm);">Output</div>
+      <textarea class="textarea" id="output" placeholder="Result will appear here…" rows="4" readonly style="background:var(--accent-soft);"></textarea>
+      <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);">
+        <button class="btn" id="btn-copy">⧉ Copy</button>
+        <button class="btn" id="btn-clear">✕ Clear</button>
+      </div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var inp=document.getElementById('input'),out=document.getElementById('output');
+    document.getElementById('btn-encode').addEventListener('click',function(){try{out.value=encodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    document.getElementById('btn-decode').addEventListener('click',function(){try{out.value=decodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    document.getElementById('btn-encode-comp').addEventListener('click',function(){try{out.value=encodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    document.getElementById('btn-swap').addEventListener('click',function(){var t=inp.value;inp.value=out.value;out.value=t;});
+    document.getElementById('btn-copy').addEventListener('click',function(){if(out.value){navigator.clipboard.writeText(out.value);this.textContent='✓ Copied';var b=this;setTimeout(function(){b.textContent='⧉ Copy';},1500);}});
+    document.getElementById('btn-clear').addEventListener('click',function(){inp.value='';out.value='';});
+  })();
+  </script>
+</body>
+</html>

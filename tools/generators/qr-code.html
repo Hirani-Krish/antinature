@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generator — AntiNature</title>
+  <meta name="description" content="Generate QR codes for any text, URL, or data instantly. Download as PNG. Free, no login required.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <style>
+    .qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: var(--space-xl); }
+    .qr-canvas { background: white; padding: 20px; border-radius: var(--radius-md); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .qr-canvas img { display: block; image-rendering: pixelated; }
+    .size-row { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-md); }
+    .size-row label { font-size: 0.82rem; color: var(--text-secondary); }
+    .size-row select { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--glass-bg); color: var(--text-primary); font-family: var(--font-family); font-size: 0.85rem; }
+    .action-row { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); justify-content: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container" style="max-width:700px;">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Generators</a><span class="page-header__breadcrumb-sep">›</span><span>QR Code</span></div>
+      <h1 class="page-header__title">QR Code Generator</h1>
+      <p class="page-header__subtitle">Generate a QR code for any text, URL, or data. Download as PNG.</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <textarea class="textarea" id="text-input" placeholder="Enter text or URL…" rows="3">https://antinature.com</textarea>
+    </div>
+
+    <div class="glass qr-wrapper animate-in">
+      <div class="qr-canvas" id="qr-canvas"></div>
+      <div class="size-row">
+        <label for="qr-size">Size:</label>
+        <select id="qr-size"><option value="4">Small</option><option value="6" selected>Medium</option><option value="8">Large</option><option value="12">Extra Large</option></select>
+        <label for="qr-ecl">Error Correction:</label>
+        <select id="qr-ecl"><option value="L">Low</option><option value="M" selected>Medium</option><option value="Q">High</option><option value="H">Highest</option></select>
+      </div>
+      <div class="action-row">
+        <button class="btn btn--accent" id="btn-download">↓ Download PNG</button>
+        <button class="btn" id="btn-copy">⧉ Copy to Clipboard</button>
+      </div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var input = document.getElementById('text-input');
+    var canvas = document.getElementById('qr-canvas');
+    var sizeSelect = document.getElementById('qr-size');
+    var eclSelect = document.getElementById('qr-ecl');
+
+    function generate() {
+      var text = input.value || 'https://antinature.com';
+      var ecl = eclSelect.value;
+      var cellSize = parseInt(sizeSelect.value);
+      try {
+        var qr = qrcode(0, ecl);
+        qr.addData(text);
+        qr.make();
+        canvas.innerHTML = qr.createImgTag(cellSize, 0);
+      } catch(e) {
+        canvas.innerHTML = '<p style="color:var(--error);font-size:0.85rem;">Text too long for this error correction level. Try a lower level.</p>';
+      }
+    }
+
+    input.addEventListener('input', generate);
+    sizeSelect.addEventListener('change', generate);
+    eclSelect.addEventListener('change', generate);
+
+    document.getElementById('btn-download').addEventListener('click', function(){
+      var img = canvas.querySelector('img');
+      if(!img) return;
+      var a = document.createElement('a');
+      a.href = img.src;
+      a.download = 'qrcode.png';
+      a.click();
+    });
+
+    document.getElementById('btn-copy').addEventListener('click', function(){
+      var img = canvas.querySelector('img');
+      if(!img) return;
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      c.toBlob(function(blob){
+        navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+      });
+      this.textContent = '✓ Copied';
+      var b = this;
+      setTimeout(function(){ b.textContent = '⧉ Copy to Clipboard'; }, 1500);
+    });
+
+    generate();
+  })();
+  </script>
+</body>
+</html>

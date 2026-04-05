@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fancy Text Generator — AntiNature</title>
+  <meta name="description" content="Generate stylish Unicode text for Instagram bios, WhatsApp status, Twitter posts. Free fancy text converter — no login required.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+  <style>
+    .fancy-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-sm); margin-top: var(--space-md); }
+    .fancy-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md); border-radius: var(--radius-md); background: var(--glass-bg); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); transition: all var(--transition-fast); }
+    .fancy-row:hover { background: var(--glass-bg-hover); }
+    .fancy-row__text { font-size: 1.05rem; color: var(--text-primary); word-break: break-all; flex: 1; margin-right: var(--space-md); }
+    .fancy-row__label { font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: 600; }
+    .fancy-row__copy { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: transparent; color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; font-family: var(--font-family); transition: all var(--transition-fast); white-space: nowrap; }
+    .fancy-row__copy:hover { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Text Tools</a><span class="page-header__breadcrumb-sep">›</span><span>Fancy Text</span></div>
+      <h1 class="page-header__title">Fancy Text Generator</h1>
+      <p class="page-header__subtitle">Create stylish Unicode text for social media bios, posts, and messages.</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <div class="input-panel__header"><span class="input-panel__title">Your Text</span></div>
+      <textarea class="textarea" id="text-input" placeholder="Type your text here…" rows="3">AntiNature</textarea>
+    </div>
+
+    <div class="glass glass--static input-panel animate-in">
+      <div class="input-panel__header"><span class="input-panel__title">Generated Styles</span></div>
+      <div class="fancy-grid" id="output-grid"></div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var fonts = {
+      'Bold': {upper:'𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙',lower:'𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳'},
+      'Italic': {upper:'𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍',lower:'𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝒉𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧'},
+      'Bold Italic': {upper:'𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁',lower:'𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛'},
+      'Script': {upper:'𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵',lower:'𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏'},
+      'Bold Script': {upper:'𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩',lower:'𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃'},
+      'Fraktur': {upper:'𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ',lower:'𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷'},
+      'Double-Struck': {upper:'𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ',lower:'𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫'},
+      'Monospace': {upper:'𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉',lower:'𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣'},
+      'Circled': {upper:'Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ Ⓕ Ⓖ Ⓗ Ⓘ Ⓙ Ⓚ Ⓛ Ⓜ Ⓝ Ⓞ Ⓟ Ⓠ Ⓡ Ⓢ Ⓣ Ⓤ Ⓥ Ⓦ Ⓧ Ⓨ Ⓩ'.replace(/ /g,''),lower:'ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ'},
+      'Squared': {upper:'🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉',lower:'🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉'},
+      'Fullwidth': {upper:'ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ',lower:'ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ'},
+      'Inverted': {upper:'Ɐ Ꞵ Ↄ D Ǝ Ⅎ ⅁ H I Ꞻ Ʞ ⅂ W N O Ԁ Q ꓤ S ⅃ ∩ Λ M X ⅄ Z'.replace(/ /g,''),lower:'ɐqɔpǝɟƃɥᴉɾʞlɯuodbɹsʇnʌʍxʎz'}
+    };
+
+    var AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var az = 'abcdefghijklmnopqrstuvwxyz';
+    var grid = document.getElementById('output-grid');
+    var input = document.getElementById('text-input');
+
+    function charMap(text, fontObj) {
+      var uc = Array.from(fontObj.upper);
+      var lc = Array.from(fontObj.lower);
+      return Array.from(text).map(function(ch){
+        var ui = AZ.indexOf(ch); if(ui>=0 && ui<uc.length) return uc[ui];
+        var li = az.indexOf(ch); if(li>=0 && li<lc.length) return lc[li];
+        return ch;
+      }).join('');
+    }
+
+    function render() {
+      var text = input.value || 'AntiNature';
+      grid.innerHTML = '';
+      Object.keys(fonts).forEach(function(name){
+        var converted = charMap(text, fonts[name]);
+        var row = document.createElement('div');
+        row.className = 'fancy-row';
+        row.innerHTML = '<div><div class="fancy-row__label">'+name+'</div><div class="fancy-row__text">'+converted+'</div></div><button class="fancy-row__copy">Copy</button>';
+        row.querySelector('.fancy-row__copy').addEventListener('click', function(){
+          navigator.clipboard.writeText(converted);
+          this.textContent = '✓';
+          var b = this;
+          setTimeout(function(){ b.textContent='Copy'; }, 1200);
+        });
+        grid.appendChild(row);
+      });
+    }
+
+    input.addEventListener('input', render);
+    render();
+  })();
+  </script>
+</body>
+</html>

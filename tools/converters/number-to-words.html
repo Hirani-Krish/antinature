@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number to Words Converter — AntiNature</title>
+  <meta name="description" content="Convert any number to words in Indian numbering system. Perfect for writing cheques. Supports Lakhs and Crores. Free, no login.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container" style="max-width:750px;">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Converters</a><span class="page-header__breadcrumb-sep">›</span><span>Number to Words</span></div>
+      <h1 class="page-header__title">Number to Words Converter</h1>
+      <p class="page-header__subtitle">Convert numbers to words (Indian numbering — Lakhs &amp; Crores).</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:var(--space-sm);font-weight:500;">Enter a Number</label>
+      <input type="text" id="num-input" placeholder="e.g. 4523000" style="width:100%;padding:12px 16px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:transparent;color:var(--text-primary);font-family:var(--font-mono);font-size:1.2rem;outline:none;" inputmode="decimal">
+      <div style="margin-top:var(--space-md);padding:var(--space-md);background:var(--accent-soft);border-radius:var(--radius-md);min-height:60px;">
+        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;font-weight:600;">In Words (Indian System)</div>
+        <div id="result-indian" style="font-size:1.1rem;color:var(--text-primary);font-weight:500;">Type a number above</div>
+      </div>
+      <div style="margin-top:var(--space-sm);padding:var(--space-md);background:var(--accent-soft);border-radius:var(--radius-md);">
+        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;font-weight:600;">In Words (International)</div>
+        <div id="result-intl" style="font-size:1.1rem;color:var(--text-primary);font-weight:500;">Type a number above</div>
+      </div>
+      <div style="margin-top:var(--space-sm);padding:var(--space-md);background:var(--accent-soft);border-radius:var(--radius-md);">
+        <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;font-weight:600;">Formatted</div>
+        <div id="result-fmt" style="font-size:1.1rem;color:var(--text-primary);font-weight:500;font-family:var(--font-mono);">—</div>
+      </div>
+      <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);">
+        <button class="btn" id="btn-copy">⧉ Copy Indian</button>
+        <button class="btn" id="btn-copy-intl">⧉ Copy International</button>
+      </div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+    var tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+    function twoDigit(n){
+      if(n<20) return ones[n];
+      return tens[Math.floor(n/10)]+(n%10?' '+ones[n%10]:'');
+    }
+    function threeDigit(n){
+      if(n<100) return twoDigit(n);
+      return ones[Math.floor(n/100)]+' Hundred'+(n%100?' and '+twoDigit(n%100):'');
+    }
+
+    function toIndian(n){
+      if(n===0) return 'Zero';
+      if(n<0) return 'Minus '+toIndian(-n);
+      var parts=[];
+      if(n>=10000000){parts.push(toIndian(Math.floor(n/10000000))+' Crore');n%=10000000;}
+      if(n>=100000){parts.push(twoDigit(Math.floor(n/100000))+' Lakh');n%=100000;}
+      if(n>=1000){parts.push(twoDigit(Math.floor(n/1000))+' Thousand');n%=1000;}
+      if(n>0) parts.push(threeDigit(n));
+      return parts.join(' ')  ;
+    }
+
+    function toIntl(n){
+      if(n===0) return 'Zero';
+      if(n<0) return 'Minus '+toIntl(-n);
+      var scl=['','Thousand','Million','Billion','Trillion'];
+      var parts=[]; var i=0;
+      while(n>0){
+        var chunk=n%1000;
+        if(chunk) parts.unshift(threeDigit(chunk)+(scl[i]?' '+scl[i]:''));
+        n=Math.floor(n/1000); i++;
+      }
+      return parts.join(' ');
+    }
+
+    function formatIndian(n){
+      var s=n.toString();
+      var neg=s[0]==='-'; if(neg) s=s.substring(1);
+      var parts=s.split('.');
+      var x=parts[0];
+      var last3=x.substring(x.length-3);
+      var rest=x.substring(0,x.length-3);
+      if(rest!=='') last3=','+last3;
+      var formatted=rest.replace(/\B(?=(\d{2})+(?!\d))/g,',')+last3;
+      return (neg?'-':'')+'₹ '+formatted+(parts[1]?'.'+parts[1]:'');
+    }
+
+    var inp=document.getElementById('num-input');
+    var ri=document.getElementById('result-indian');
+    var rl=document.getElementById('result-intl');
+    var rf=document.getElementById('result-fmt');
+
+    inp.addEventListener('input',function(){
+      var v=this.value.replace(/[^0-9.-]/g,'');
+      var num=parseInt(v);
+      if(isNaN(num)){ri.textContent='Type a number above';rl.textContent='Type a number above';rf.textContent='—';return;}
+      ri.textContent=toIndian(num);
+      rl.textContent=toIntl(num);
+      rf.textContent=formatIndian(num);
+    });
+
+    function copyText(id,btn){
+      var t=document.getElementById(id).textContent;
+      if(t&&t!=='Type a number above'){navigator.clipboard.writeText(t);btn.textContent='✓ Copied';setTimeout(function(){btn.textContent=btn.dataset.orig;},1500);}
+    }
+    var b1=document.getElementById('btn-copy');b1.dataset.orig=b1.textContent;
+    b1.addEventListener('click',function(){copyText('result-indian',this);});
+    var b2=document.getElementById('btn-copy-intl');b2.dataset.orig=b2.textContent;
+    b2.addEventListener('click',function(){copyText('result-intl',this);});
+  })();
+  </script>
+</body>
+</html>

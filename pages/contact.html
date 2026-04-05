@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — AntiNature</title>
+  <meta name="description" content="Get in touch with the AntiNature team. Suggestions, bug reports, and feedback welcome.">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/theme.js"></script>
+  <style>
+    .form-group { margin-bottom: var(--space-md); }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-xs); }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: transparent; color: var(--text-primary); font-family: var(--font-family); font-size: 0.92rem; outline: none; transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+    .form-input:focus { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .form-textarea { min-height: 150px; resize: vertical; }
+    .contact-info { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-md); margin-top: var(--space-xl); }
+    .info-card { padding: var(--space-lg); text-align: center; }
+    .info-card__icon { font-size: 1.5rem; margin-bottom: var(--space-sm); }
+    .info-card__title { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-xs); }
+    .info-card__text { font-size: 0.82rem; color: var(--text-secondary); }
+    .info-card__text a { color: var(--accent); text-decoration: underline; }
+    .success-msg { display: none; padding: var(--space-lg); text-align: center; color: var(--text-primary); }
+    .success-msg h3 { font-size: 1.2rem; margin-bottom: var(--space-sm); }
+    .success-msg p { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../js/navbar.js"></script>
+
+  <main class="page"><div class="container" style="max-width:700px;">
+    <header class="page-header animate-in">
+      <h1 class="page-header__title">Contact Us</h1>
+      <p class="page-header__subtitle">Got a question, suggestion, or found a bug? We'd love to hear from you.</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <form id="contact-form" action="https://formsubmit.co/your-email@example.com" method="POST">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="text" name="_honey" style="display:none;">
+
+        <div class="form-group">
+          <label for="name">Your Name</label>
+          <input class="form-input" type="text" id="name" name="name" placeholder="John Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" name="email" placeholder="john@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="subject">Subject</label>
+          <select class="form-input" id="subject" name="subject">
+            <option value="General">General Question</option>
+            <option value="Suggestion">Tool Suggestion</option>
+            <option value="Bug Report">Bug Report</option>
+            <option value="Feedback">Feedback</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea class="form-input form-textarea" id="message" name="message" placeholder="Tell us what's on your mind…" required></textarea>
+        </div>
+
+        <button class="btn btn--accent" type="submit" style="width:100%;padding:12px;">Send Message</button>
+      </form>
+
+      <div class="success-msg" id="success">
+        <h3>✓ Message Sent!</h3>
+        <p>Thanks for reaching out. We'll get back to you as soon as possible.</p>
+      </div>
+    </div>
+
+    <div class="contact-info animate-in">
+      <div class="glass info-card">
+        <div class="info-card__icon">📧</div>
+        <div class="info-card__title">Email</div>
+        <div class="info-card__text"><a href="mailto:hello@antinature.com">hello@antinature.com</a></div>
+      </div>
+      <div class="glass info-card">
+        <div class="info-card__icon">💬</div>
+        <div class="info-card__title">Social</div>
+        <div class="info-card__text">Coming soon</div>
+      </div>
+      <div class="glass info-card">
+        <div class="info-card__icon">⏱</div>
+        <div class="info-card__title">Response Time</div>
+        <div class="info-card__text">Usually within 24-48 hours</div>
+      </div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense. · <a href="privacy.html">Privacy</a> · <a href="about.html">About</a></p></div></footer>
+
+  <script>
+  (function(){
+    var form = document.getElementById('contact-form');
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      /* In production — FormSubmit or Formspree handles this. For now, simulate success. */
+      form.style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word & Character Counter — AntiNature</title>
+  <meta name="description" content="Free online word counter, character counter, sentence counter with reading time estimates. No login required. Fast, private, and works offline.">
+  <meta name="keywords" content="word counter, character counter, letter counter, sentence counter, reading time, online text analysis">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+</head>
+<body>
+
+  <!-- ======= NAVBAR ======= -->
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <!-- ======= PAGE CONTENT ======= -->
+  <main class="page">
+    <div class="container">
+
+      <!-- Page Header -->
+      <header class="page-header animate-in">
+        <div class="page-header__breadcrumb">
+          <a href="../../index.html">Home</a>
+          <span class="page-header__breadcrumb-sep">›</span>
+          <a href="#">Text Tools</a>
+          <span class="page-header__breadcrumb-sep">›</span>
+          <span>Word Counter</span>
+        </div>
+        <h1 class="page-header__title">Word & Character Counter</h1>
+        <p class="page-header__subtitle">Count words, characters, sentences, and more — instantly as you type.</p>
+      </header>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid animate-in">
+        <div class="glass stat-card">
+          <div class="stat-card__value" id="stat-words">0</div>
+          <div class="stat-card__label">Words</div>
+        </div>
+        <div class="glass stat-card">
+          <div class="stat-card__value" id="stat-characters">0</div>
+          <div class="stat-card__label">Characters</div>
+        </div>
+        <div class="glass stat-card">
+          <div class="stat-card__value" id="stat-sentences">0</div>
+          <div class="stat-card__label">Sentences</div>
+        </div>
+        <div class="glass stat-card">
+          <div class="stat-card__value" id="stat-paragraphs">0</div>
+          <div class="stat-card__label">Paragraphs</div>
+        </div>
+      </div>
+
+      <!-- Text Input Area -->
+      <div class="glass glass--static input-panel animate-in">
+        <div class="input-panel__header">
+          <span class="input-panel__title">Your Text</span>
+          <div class="input-panel__actions">
+            <button class="btn btn--small" id="btn-paste">⎘ Paste</button>
+            <button class="btn btn--small" id="btn-copy">⧉ Copy</button>
+            <button class="btn btn--small" id="btn-clear">✕ Clear</button>
+          </div>
+        </div>
+        <textarea 
+          class="textarea" 
+          id="text-input" 
+          placeholder="Start typing or paste your text here…"
+          autofocus
+          spellcheck="false"
+        ></textarea>
+      </div>
+
+      <!-- Detailed Breakdown -->
+      <div class="glass glass--static details-panel animate-in">
+        <div class="details-panel__title">Detailed Breakdown</div>
+        <div class="details-grid">
+          <div class="detail-row">
+            <span class="detail-row__label">Characters (no spaces)</span>
+            <span class="detail-row__value" id="detail-chars-no-space">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Letters</span>
+            <span class="detail-row__value" id="detail-letters">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Numbers</span>
+            <span class="detail-row__value" id="detail-numbers">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Special Characters</span>
+            <span class="detail-row__value" id="detail-special">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Spaces</span>
+            <span class="detail-row__value" id="detail-spaces">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Lines</span>
+            <span class="detail-row__value" id="detail-lines">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Avg. Word Length</span>
+            <span class="detail-row__value" id="detail-avg-word">0</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Longest Word</span>
+            <span class="detail-row__value" id="detail-longest-word">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Reading Time</span>
+            <span class="detail-row__value" id="detail-read-time">0 sec</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Speaking Time</span>
+            <span class="detail-row__value" id="detail-speak-time">0 sec</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p>
+    </div>
+  </footer>
+
+  <script src="../../js/word-counter.js"></script>
+</body>
+</html>

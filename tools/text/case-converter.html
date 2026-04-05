@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Case Converter — AntiNature</title>
+  <meta name="description" content="Convert text to UPPERCASE, lowercase, Title Case, Sentence case, and more. Free online text case changer — no login required.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+  <style>
+    .case-buttons { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
+    .case-btn { padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--glass-bg); backdrop-filter: blur(8px); color: var(--text-secondary); font-family: var(--font-family); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); }
+    .case-btn:hover, .case-btn--active { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
+    .output-area { width: 100%; min-height: 120px; padding: var(--space-md); background: var(--accent-soft); border: 1px solid var(--border-light); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-family); font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word; }
+    .panel-label { font-size: 0.8rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-sm); }
+  </style>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Text Tools</a><span class="page-header__breadcrumb-sep">›</span><span>Case Converter</span></div>
+      <h1 class="page-header__title">Text Case Converter</h1>
+      <p class="page-header__subtitle">Instantly convert your text between different cases.</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <div class="panel-label">Input Text</div>
+      <textarea class="textarea" id="text-input" placeholder="Paste or type your text here…" rows="6"></textarea>
+    </div>
+
+    <div class="glass glass--static input-panel animate-in">
+      <div class="panel-label">Choose Conversion</div>
+      <div class="case-buttons">
+        <button class="case-btn" data-case="upper">UPPERCASE</button>
+        <button class="case-btn" data-case="lower">lowercase</button>
+        <button class="case-btn" data-case="title">Title Case</button>
+        <button class="case-btn" data-case="sentence">Sentence case</button>
+        <button class="case-btn" data-case="camel">camelCase</button>
+        <button class="case-btn" data-case="pascal">PascalCase</button>
+        <button class="case-btn" data-case="snake">snake_case</button>
+        <button class="case-btn" data-case="kebab">kebab-case</button>
+        <button class="case-btn" data-case="toggle">tOGGLE cASE</button>
+        <button class="case-btn" data-case="alternating">aLtErNaTiNg</button>
+      </div>
+      <div class="panel-label" style="margin-top:var(--space-md);">Result</div>
+      <div class="output-area" id="output"></div>
+      <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);">
+        <button class="btn btn--accent" id="btn-copy">⧉ Copy Result</button>
+        <button class="btn" id="btn-clear">✕ Clear</button>
+      </div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var input = document.getElementById('text-input');
+    var output = document.getElementById('output');
+    var activeBtn = null;
+    var activeCase = null;
+
+    function convert(text, type) {
+      switch(type) {
+        case 'upper': return text.toUpperCase();
+        case 'lower': return text.toLowerCase();
+        case 'title': return text.replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+        case 'sentence': return text.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, function(c){ return c.toUpperCase(); });
+        case 'camel': return text.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, function(m,c){ return c.toUpperCase(); });
+        case 'pascal': var r = text.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, function(m,c){ return c.toUpperCase(); }); return r.charAt(0).toUpperCase()+r.slice(1);
+        case 'snake': return text.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+        case 'kebab': return text.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+        case 'toggle': return text.split('').map(function(c){ return c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase(); }).join('');
+        case 'alternating': return text.split('').map(function(c,i){ return i%2===0 ? c.toLowerCase() : c.toUpperCase(); }).join('');
+        default: return text;
+      }
+    }
+
+    function update() { if(activeCase) output.textContent = convert(input.value, activeCase); }
+
+    document.querySelectorAll('.case-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(activeBtn) activeBtn.classList.remove('case-btn--active');
+        btn.classList.add('case-btn--active');
+        activeBtn = btn;
+        activeCase = btn.dataset.case;
+        update();
+      });
+    });
+
+    input.addEventListener('input', update);
+    document.getElementById('btn-copy').addEventListener('click', function(){
+      if(output.textContent){ navigator.clipboard.writeText(output.textContent); this.textContent='✓ Copied'; var b=this; setTimeout(function(){b.textContent='⧉ Copy Result';},1500); }
+    });
+    document.getElementById('btn-clear').addEventListener('click', function(){ input.value=''; output.textContent=''; });
+  })();
+  </script>
+</body>
+</html>

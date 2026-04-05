@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Picker & Converter — AntiNature</title>
+  <meta name="description" content="Pick colors and convert between HEX, RGB, and HSL formats. Free online color tool — no login required.">
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/theme.js"></script>
+  <style>
+    .color-hero { display: flex; gap: var(--space-xl); align-items: flex-start; }
+    .color-preview { width: 200px; height: 200px; border-radius: var(--radius-lg); border: 1px solid var(--border-light); flex-shrink: 0; transition: background var(--transition-fast); cursor: pointer; position: relative; overflow: hidden; }
+    .color-preview input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .color-values { flex: 1; display: flex; flex-direction: column; gap: var(--space-sm); }
+    .color-field { display: flex; align-items: center; gap: var(--space-sm); }
+    .color-field__label { font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; width: 40px; flex-shrink: 0; }
+    .color-field__input { flex: 1; padding: 8px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--glass-bg); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.9rem; outline: none; }
+    .color-field__input:focus { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .color-field__copy { padding: 6px 10px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 0.75rem; transition: all var(--transition-fast); }
+    .color-field__copy:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .palette-section { margin-top: var(--space-xl); }
+    .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: var(--space-xs); margin-top: var(--space-md); }
+    .palette-swatch { aspect-ratio: 1; border-radius: var(--radius-sm); cursor: pointer; border: 2px solid transparent; transition: all var(--transition-fast); }
+    .palette-swatch:hover { transform: scale(1.1); border-color: var(--text-primary); }
+    .palette-swatch--active { border-color: var(--accent); transform: scale(1.1); }
+    @media(max-width:600px) { .color-hero { flex-direction: column; align-items: stretch; } .color-preview { width: 100%; height: 150px; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar"></nav>
+  <script src="../../js/navbar.js"></script>
+
+  <main class="page"><div class="container" style="max-width:750px;">
+    <header class="page-header animate-in">
+      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Converters</a><span class="page-header__breadcrumb-sep">›</span><span>Color Picker</span></div>
+      <h1 class="page-header__title">Color Picker & Converter</h1>
+      <p class="page-header__subtitle">Pick any color and get its HEX, RGB, and HSL values.</p>
+    </header>
+
+    <div class="glass glass--static input-panel animate-in">
+      <div class="color-hero">
+        <div class="color-preview" id="preview" style="background:#4a6fa5;">
+          <input type="color" id="picker" value="#4a6fa5">
+        </div>
+        <div class="color-values">
+          <div class="color-field"><span class="color-field__label">HEX</span><input class="color-field__input" id="hex-val" value="#4a6fa5"><button class="color-field__copy" data-target="hex-val">Copy</button></div>
+          <div class="color-field"><span class="color-field__label">RGB</span><input class="color-field__input" id="rgb-val" value="rgb(74, 111, 165)"><button class="color-field__copy" data-target="rgb-val">Copy</button></div>
+          <div class="color-field"><span class="color-field__label">HSL</span><input class="color-field__input" id="hsl-val" value="hsl(216, 38%, 47%)"><button class="color-field__copy" data-target="hsl-val">Copy</button></div>
+          <div class="color-field"><span class="color-field__label">RGBA</span><input class="color-field__input" id="rgba-val" value="rgba(74, 111, 165, 1)"><button class="color-field__copy" data-target="rgba-val">Copy</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass glass--static input-panel palette-section animate-in">
+      <div class="input-panel__header"><span class="input-panel__title">Color Palette</span></div>
+      <div class="palette-grid" id="palette"></div>
+    </div>
+  </div></main>
+
+  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+
+  <script>
+  (function(){
+    var picker = document.getElementById('picker');
+    var preview = document.getElementById('preview');
+    var hexInput = document.getElementById('hex-val');
+    var rgbInput = document.getElementById('rgb-val');
+    var hslInput = document.getElementById('hsl-val');
+    var rgbaInput = document.getElementById('rgba-val');
+
+    function hexToRgb(hex) {
+      hex = hex.replace('#','');
+      if(hex.length===3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      return { r: parseInt(hex.substring(0,2),16), g: parseInt(hex.substring(2,4),16), b: parseInt(hex.substring(4,6),16) };
+    }
+
+    function rgbToHsl(r,g,b) {
+      r/=255; g/=255; b/=255;
+      var max=Math.max(r,g,b), min=Math.min(r,g,b), h, s, l=(max+min)/2;
+      if(max===min) { h=s=0; } else {
+        var d=max-min; s=l>0.5?d/(2-max-min):d/(max+min);
+        switch(max){ case r: h=((g-b)/d+(g<b?6:0))/6; break; case g: h=((b-r)/d+2)/6; break; case b: h=((r-g)/d+4)/6; break; }
+      }
+      return { h: Math.round(h*360), s: Math.round(s*100), l: Math.round(l*100) };
+    }
+
+    function updateFromHex(hex) {
+      if(!/^#?[0-9a-fA-F]{3,6}$/.test(hex)) return;
+      if(hex[0]!=='#') hex = '#'+hex;
+      var rgb = hexToRgb(hex);
+      var hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      preview.style.background = hex;
+      picker.value = hex;
+      hexInput.value = hex;
+      rgbInput.value = 'rgb('+rgb.r+', '+rgb.g+', '+rgb.b+')';
+      hslInput.value = 'hsl('+hsl.h+', '+hsl.s+'%, '+hsl.l+'%)';
+      rgbaInput.value = 'rgba('+rgb.r+', '+rgb.g+', '+rgb.b+', 1)';
+    }
+
+    picker.addEventListener('input', function(){ updateFromHex(this.value); });
+    hexInput.addEventListener('input', function(){ updateFromHex(this.value); });
+
+    document.querySelectorAll('.color-field__copy').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var target = document.getElementById(this.dataset.target);
+        navigator.clipboard.writeText(target.value);
+        this.textContent = '✓'; var b=this; setTimeout(function(){ b.textContent='Copy'; },1200);
+      });
+    });
+
+    var colors = ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#1a1a1a','#4a4a4a','#6b7280','#9ca3af','#d1d5db','#f3f4f6','#ffffff'];
+    var palette = document.getElementById('palette');
+    colors.forEach(function(c){
+      var swatch = document.createElement('div');
+      swatch.className = 'palette-swatch';
+      swatch.style.background = c;
+      swatch.title = c;
+      swatch.addEventListener('click', function(){ updateFromHex(c); });
+      palette.appendChild(swatch);
+    });
+
+    updateFromHex('#4a6fa5');
+  })();
+  </script>
+</body>
+</html>
