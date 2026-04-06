@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AntiNature — Free Online Tools | No Login, No Ads</title>
   <meta name="description" content="AntiNature is a free, privacy-first platform with browser-based utility tools. Word counter, password generator, QR codes, color picker, and more. No login. No tracking. No ads.">
-  <meta name="keywords" content="free online tools, word counter, password generator, QR code generator, color picker, text case converter, no login tools">
   <link rel="stylesheet" href="css/style.css">
   <script src="js/theme.js"></script>
+  <script src="js/interactive.js"></script>
   <style>
-    .hero { text-align: center; padding: var(--space-3xl) 0 var(--space-xl); }
+    .hero { text-align: center; padding: var(--space-3xl) 0 var(--space-xl); position: relative; z-index: 2; }
     .hero__title { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em; color: var(--text-primary); line-height: 1.12; margin-bottom: var(--space-md); }
     .hero__subtitle { font-size: 1.05rem; color: var(--text-secondary); max-width: 520px; margin: 0 auto var(--space-lg); line-height: 1.65; }
     .hero__stats { display: flex; justify-content: center; gap: var(--space-xl); margin-top: var(--space-lg); flex-wrap: wrap; }
@@ -36,11 +36,12 @@
 </head>
 <body>
 
-  <!-- ======= NAVBAR ======= -->
+  <!-- Clean, Interactive Tech Network Background for Home Page -->
+  <canvas id="home-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.5;"></canvas>
+
   <nav class="navbar"></nav>
   <script src="js/navbar.js"></script>
 
-  <!-- ======= HERO ======= -->
   <main class="page">
     <div class="container">
       <section class="hero animate-in">
@@ -56,7 +57,6 @@
         </div>
       </section>
 
-      <!-- TEXT TOOLS -->
       <section id="text-tools">
         <div class="section-title animate-in">Text Tools</div>
         <div class="tools-grid">
@@ -83,7 +83,6 @@
         </div>
       </section>
 
-      <!-- GENERATORS -->
       <section id="generators">
         <div class="section-title animate-in">Generators</div>
         <div class="tools-grid">
@@ -100,7 +99,6 @@
         </div>
       </section>
 
-      <!-- CONVERTERS -->
       <section id="converters">
         <div class="section-title animate-in">Converters</div>
         <div class="tools-grid">
@@ -122,7 +120,6 @@
         </div>
       </section>
 
-      <!-- UTILITY -->
       <section id="utility">
         <div class="section-title animate-in">Utility</div>
         <div class="tools-grid">
@@ -139,7 +136,6 @@
         </div>
       </section>
 
-      <!-- CTA SECTION -->
       <section class="glass cta-section animate-in">
         <h2>More tools coming soon</h2>
         <p>We're continuously adding new tools. Have a suggestion? <a href="pages/contact.html" style="color:var(--accent);text-decoration:underline;">Let us know</a> what you'd like to see next.</p>
@@ -147,7 +143,6 @@
     </div>
   </main>
 
-  <!-- ======= FOOTER ======= -->
   <footer class="footer">
     <div class="container">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-md);">
@@ -161,5 +156,82 @@
     </div>
   </footer>
 
+  <!-- Interactive Network Background Script -->
+  <script>
+    const cvs = document.getElementById('home-canvas');
+    const ctx = cvs.getContext('2d');
+    let width, height;
+    let particles = [];
+    
+    function init() {
+      width = cvs.width = window.innerWidth;
+      height = cvs.height = window.innerHeight;
+      particles = [];
+      let count = window.innerWidth < 768 ? 40 : 100;
+      for(let i=0; i<count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    let mouse = { x: -1000, y: -1000 };
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let themeColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#8b909e';
+      
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0 || p.x > width) p.vx *= -1;
+        if(p.y < 0 || p.y > height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = themeColor;
+        ctx.fill();
+      });
+
+      // Draw lines
+      for(let i=0; i<particles.length; i++) {
+        for(let j=i+1; j<particles.length; j++) {
+          let dx = particles[i].x - particles[j].x;
+          let dy = particles[i].y - particles[j].y;
+          let dist = Math.sqrt(dx*dx + dy*dy);
+          if(dist < 120) {
+            ctx.beginPath();
+            ctx.strokeStyle = themeColor;
+            ctx.globalAlpha = 1 - (dist / 120);
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+        // Connect to mouse
+        let dx = particles[i].x - mouse.x;
+        let dy = particles[i].y - mouse.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < 150) {
+          ctx.beginPath();
+          ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#4a6fa5';
+          ctx.globalAlpha = 1 - (dist / 150);
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
 </body>
 </html>

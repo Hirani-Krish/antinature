@@ -7,31 +7,51 @@
   <meta name="description" content="Generate placeholder Lorem Ipsum text — paragraphs, sentences, or words. Free, instant, no login.">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/theme.js"></script>
+  <script src="../../js/interactive.js"></script>
+  <style>
+    body { position: relative; }
+    #bg-container { position: absolute; top: 0; left: 0; right: 0; z-index: -1; pointer-events: none; overflow: hidden; perspective: 1200px; transform-style: preserve-3d; }
+    .letter-card { position: absolute; width: 26px; height: 26px; transform-style: preserve-3d; will-change: transform; }
+    .letter-face { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14px; font-weight: bold; color: var(--text-tertiary); background: var(--glass-bg); border: 1px solid var(--border-light); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .letter-face--back { transform: rotateY(180deg); }
+    .static-card .letter-face { opacity: 0.8; }
+    .pyramid-stage { height: 280px; width: 100%; display: flex; align-items: flex-end; justify-content: center; color: var(--text-tertiary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; padding-bottom: 20px; pointer-events: none; }
+  </style>
 </head>
 <body>
+
+  <div id="bg-container"></div>
+
   <nav class="navbar"></nav>
   <script src="../../js/navbar.js"></script>
 
-  <main class="page"><div class="container" style="max-width:800px;">
-    <header class="page-header animate-in">
-      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Text Tools</a><span class="page-header__breadcrumb-sep">›</span><span>Lorem Ipsum</span></div>
-      <h1 class="page-header__title">Lorem Ipsum Generator</h1>
-      <p class="page-header__subtitle">Generate placeholder text for your designs and layouts.</p>
-    </header>
+  <main class="page">
+    <div class="container" style="max-width:800px;">
+      <header class="page-header animate-in">
+        <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Text Tools</a><span class="page-header__breadcrumb-sep">›</span><span>Lorem Ipsum</span></div>
+        <h1 class="page-header__title">Lorem Ipsum Generator</h1>
+        <p class="page-header__subtitle">Generate placeholder text for your designs and layouts.</p>
+      </header>
 
-    <div class="glass glass--static input-panel animate-in">
-      <div style="display:flex;gap:var(--space-md);flex-wrap:wrap;align-items:flex-end;margin-bottom:var(--space-md);">
-        <div><label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:4px;">Amount</label><input type="number" id="amount" value="3" min="1" max="50" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);width:80px;"></div>
-        <div><label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:4px;">Type</label><select id="type" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);"><option value="paragraphs">Paragraphs</option><option value="sentences">Sentences</option><option value="words">Words</option></select></div>
-        <div><label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:4px;">&nbsp;</label><label style="font-size:0.85rem;color:var(--text-primary);cursor:pointer;"><input type="checkbox" id="start-lorem" checked style="accent-color:var(--accent);margin-right:4px;">Start with "Lorem ipsum…"</label></div>
-        <button class="btn btn--accent" id="btn-gen">Generate</button>
+      <div class="glass glass--static input-panel animate-in">
+        <div class="input-panel__header"><span class="input-panel__title">Options (Drag Me)</span></div>
+        <div style="display:flex;gap:var(--space-md);flex-wrap:wrap;align-items:flex-end;margin-bottom:var(--space-md);">
+          <div><label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:4px;">Amount</label><input type="number" id="amount" value="3" min="1" max="50" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);width:80px;"></div>
+          <div><label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:4px;">Type</label><select id="type" style="padding:8px 12px;border:1px solid var(--border-light);border-radius:var(--radius-sm);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);"><option value="paragraphs">Paragraphs</option><option value="sentences">Sentences</option><option value="words">Words</option></select></div>
+          <div><label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:4px;">&nbsp;</label><label style="font-size:0.85rem;color:var(--text-primary);cursor:pointer;"><input type="checkbox" id="start-lorem" checked style="accent-color:var(--accent);margin-right:4px;">Start with "Lorem ipsum…"</label></div>
+          <button class="btn btn--accent" id="btn-gen">Generate</button>
+        </div>
+        <div id="output" style="padding:var(--space-md);background:var(--accent-soft);border:1px solid var(--border-light);border-radius:var(--radius-md);color:var(--text-primary);font-size:0.92rem;line-height:1.8;white-space:pre-wrap;min-height:100px;"></div>
+        <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);"><button class="btn" id="btn-copy">⧉ Copy</button></div>
       </div>
-      <div id="output" style="padding:var(--space-md);background:var(--accent-soft);border:1px solid var(--border-light);border-radius:var(--radius-md);color:var(--text-primary);font-size:0.92rem;line-height:1.8;white-space:pre-wrap;min-height:100px;"></div>
-      <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);"><button class="btn" id="btn-copy">⧉ Copy</button></div>
+      
+      <div class="pyramid-stage">↓ The Ruins ↓</div>
     </div>
-  </div></main>
+  </main>
 
-  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
+    <div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div>
+  </footer>
 
   <script>
   (function(){
@@ -84,6 +104,55 @@
     });
     generate();
   })();
+
+  // 3D Theme Engine
+  const container = document.getElementById('bg-container');
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const cardSize = 30; let cols, pilePxHeights = [], fallingLeaves = [], floorY = 0;
+  function createCardElement(char, isStatic = false) { const card = document.createElement('div'); card.className = `letter-card ${isStatic ? 'static-card' : ''}`; const front = document.createElement('div'); front.className = 'letter-face'; front.textContent = char; const back = document.createElement('div'); back.className = 'letter-face letter-face--back'; back.textContent = char; card.appendChild(front); card.appendChild(back); return card; }
+  function init3DEngine() {
+    container.innerHTML = '';
+    const width = document.body.scrollWidth, height = Math.max(document.body.scrollHeight, window.innerHeight); 
+    container.style.width = width + 'px'; container.style.height = height + 'px';
+    cols = Math.floor(width / cardSize); floorY = height - 100; 
+    let centerCol = Math.floor(cols / 2), maxPilePx = 150; pilePxHeights = new Array(cols).fill(0);
+    for (let c = 0; c < cols; c++) {
+      let dist = Math.abs(c - centerCol), heightForCol = maxPilePx - (dist * 12); 
+      if (heightForCol < 20 && Math.random() > 0.4) heightForCol = 0; 
+      if (heightForCol < 0) heightForCol = 0;
+      pilePxHeights[c] = heightForCol;
+      let numCardsInPile = Math.floor(heightForCol / 5);
+      for (let i = 0; i < numCardsInPile; i++) {
+        let card = createCardElement(letters[Math.floor(Math.random() * letters.length)], true);
+        let x = (c * cardSize) + (Math.random() - 0.5) * 40, y = floorY - (i * 5) + (Math.random() - 0.5) * 10, z = (Math.random() - 0.5) * 80;
+        let rx = (60 + Math.random() * 25) * (Math.random() > 0.5 ? 1 : -1), ry = Math.random() * 360, rz = Math.random() * 360;
+        card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`; container.appendChild(card);
+      }
+    }
+    fallingLeaves = []; for (let i = 0; i < 15; i++) fallingLeaves.push(new FallingCard(true));
+  }
+  class FallingCard {
+    constructor(initialLoad = false) { this.el = createCardElement('A', false); container.appendChild(this.el); this.reset(initialLoad); }
+    reset(initialLoad = false) {
+      this.baseX = Math.random() * window.innerWidth;
+      this.y = initialLoad ? window.scrollY + (Math.random() * window.innerHeight) : window.scrollY - 100;
+      this.x = this.baseX; this.el.children[0].textContent = this.el.children[1].textContent = letters[Math.floor(Math.random() * letters.length)];
+      this.speedY = Math.random() * 0.8 + 0.4; this.swingAngle = Math.random() * Math.PI * 2; this.swingSpeed = Math.random() * 0.02 + 0.01; this.swingRadius = Math.random() * 40 + 20;
+      this.rotX = Math.random() * 360; this.rotY = Math.random() * 360; this.rotZ = Math.random() * 360; this.spinX = (Math.random() - 0.5) * 3; this.spinY = (Math.random() - 0.5) * 3; this.spinZ = (Math.random() - 0.5) * 1;
+    }
+    update() {
+      this.y += this.speedY; this.swingAngle += this.swingSpeed; this.x = this.baseX + Math.sin(this.swingAngle) * this.swingRadius;
+      this.rotX += this.spinX; this.rotY += this.spinY; this.rotZ += this.spinZ;
+      let currentCol = Math.max(0, Math.min(cols - 1, Math.floor(this.baseX / cardSize)));
+      let targetY = floorY - pilePxHeights[currentCol];
+      this.el.style.transform = `translate3d(${this.x}px, ${this.y}px, 0) rotateX(${this.rotX}deg) rotateY(${this.rotY}deg) rotateZ(${this.rotZ}deg)`;
+      if (this.y > targetY) this.reset(false);
+    }
+  }
+  const resizeObserver = new ResizeObserver(() => { clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(init3DEngine, 200); });
+  resizeObserver.observe(document.body);
+  function animateEngine() { fallingLeaves.forEach(leaf => leaf.update()); requestAnimationFrame(animateEngine); }
+  setTimeout(() => { init3DEngine(); animateEngine(); }, 50);
   </script>
 </body>
 </html>

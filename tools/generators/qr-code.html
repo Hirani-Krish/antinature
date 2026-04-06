@@ -7,53 +7,171 @@
   <meta name="description" content="Generate QR codes for any text, URL, or data instantly. Download as PNG. Free, no login required.">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/theme.js"></script>
+  <script src="../../js/interactive.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <style>
-    .qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: var(--space-xl); }
+    body { position: relative; }
+    
+    .qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: var(--space-md) var(--space-xl) var(--space-xl); }
     .qr-canvas { background: white; padding: 20px; border-radius: var(--radius-md); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
     .qr-canvas img { display: block; image-rendering: pixelated; }
-    .size-row { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-md); }
+    .size-row { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-md); flex-wrap: wrap; justify-content: center; }
     .size-row label { font-size: 0.82rem; color: var(--text-secondary); }
     .size-row select { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--glass-bg); color: var(--text-primary); font-family: var(--font-family); font-size: 0.85rem; }
     .action-row { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); justify-content: center; flex-wrap: wrap; }
   </style>
 </head>
 <body>
+
+  <!-- Subtle QR Matrix Background Canvas -->
+  <!-- Opacity set to 1 here, but carefully controlled inside the JS to be very faint -->
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; z-index: -1; pointer-events: none;"></canvas>
+
   <nav class="navbar"></nav>
   <script src="../../js/navbar.js"></script>
 
-  <main class="page"><div class="container" style="max-width:700px;">
-    <header class="page-header animate-in">
-      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Generators</a><span class="page-header__breadcrumb-sep">›</span><span>QR Code</span></div>
-      <h1 class="page-header__title">QR Code Generator</h1>
-      <p class="page-header__subtitle">Generate a QR code for any text, URL, or data. Download as PNG.</p>
-    </header>
+  <main class="page">
+    <div class="container" style="max-width:700px;">
+      <header class="page-header animate-in">
+        <div class="page-header__breadcrumb">
+          <a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span>
+          <a href="#">Generators</a><span class="page-header__breadcrumb-sep">›</span>
+          <span>QR Code</span>
+        </div>
+        <h1 class="page-header__title">QR Code Generator</h1>
+        <p class="page-header__subtitle">Generate a QR code for any text, URL, or data. Download as PNG.</p>
+      </header>
 
-    <div class="glass glass--static input-panel animate-in">
-      <textarea class="textarea" id="text-input" placeholder="Enter text or URL…" rows="3">https://antinature.com</textarea>
-    </div>
-
-    <div class="glass qr-wrapper animate-in">
-      <div class="qr-canvas" id="qr-canvas"></div>
-      <div class="size-row">
-        <label for="qr-size">Size:</label>
-        <select id="qr-size"><option value="4">Small</option><option value="6" selected>Medium</option><option value="8">Large</option><option value="12">Extra Large</option></select>
-        <label for="qr-ecl">Error Correction:</label>
-        <select id="qr-ecl"><option value="L">Low</option><option value="M" selected>Medium</option><option value="Q">High</option><option value="H">Highest</option></select>
+      <div class="glass glass--static input-panel animate-in">
+        <div class="input-panel__header"><span class="input-panel__title">Data Input (Drag Me)</span></div>
+        <textarea class="textarea" id="text-input" placeholder="Enter text or URL…" rows="3">https://antinature.com</textarea>
       </div>
-      <div class="action-row">
-        <button class="btn btn--accent" id="btn-download">↓ Download PNG</button>
-        <button class="btn" id="btn-copy">⧉ Copy to Clipboard</button>
+
+      <div class="glass glass--static input-panel animate-in" style="margin-top: var(--space-md);">
+        <div class="input-panel__header"><span class="input-panel__title">Generated QR (Drag Me)</span></div>
+        <div class="qr-wrapper">
+          <div class="qr-canvas" id="qr-canvas"></div>
+          <div class="size-row">
+            <label for="qr-size">Size:</label>
+            <select id="qr-size">
+              <option value="4">Small</option>
+              <option value="6" selected>Medium</option>
+              <option value="8">Large</option>
+              <option value="12">Extra Large</option>
+            </select>
+            <label for="qr-ecl">Error Correction:</label>
+            <select id="qr-ecl">
+              <option value="L">Low</option>
+              <option value="M" selected>Medium</option>
+              <option value="Q">High</option>
+              <option value="H">Highest</option>
+            </select>
+          </div>
+          <div class="action-row">
+            <button class="btn btn--accent" id="btn-download">↓ Download PNG</button>
+            <button class="btn" id="btn-copy">⧉ Copy to Clipboard</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div></main>
+  </main>
 
-  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
+    <div class="container">
+      <p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p>
+    </div>
+  </footer>
+
+  <!-- Clean, Subtle QR Block Background Logic -->
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Increased block size and spread them out to show fewer things
+    let blockSize = 28; 
+    let columns;
+    let drops = [];
+
+    function initCanvas() {
+      canvas.width = document.body.scrollWidth;
+      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+      
+      // Only spawn a drop in every 2nd column to reduce clutter
+      columns = Math.floor(canvas.width / blockSize) + 1;
+      drops = [];
+      for (let x = 0; x < columns; x++) {
+        // Leave gaps between columns
+        drops[x] = (x % 2 === 0) ? Math.random() * -100 : -9999; 
+      }
+    }
+
+    let mouseX = -1000, mouseY = -1000;
+    window.addEventListener('mousemove', (e) => { 
+      mouseX = e.pageX; 
+      mouseY = e.pageY; 
+    });
+    
+    window.addEventListener('resize', initCanvas);
+    const resizeObserver = new ResizeObserver(() => {
+      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+    });
+    resizeObserver.observe(document.body);
+
+    initCanvas();
+
+    function drawMatrix() {
+      // Fade out background to create short trails
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-page');
+      ctx.globalAlpha = 0.15; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      const defaultColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#8b909e';
+      const highlightColor = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#4a6fa5';
+
+      for (let i = 0; i < drops.length; i++) {
+        // Skip empty columns
+        if (drops[i] === -9999) continue;
+
+        let x = i * blockSize;
+        let y = drops[i] * blockSize;
+
+        let dx = mouseX - x;
+        let dy = mouseY - y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        
+        let isHighlighted = dist < 120; // Mouse interaction radius
+        
+        ctx.fillStyle = isHighlighted ? highlightColor : defaultColor;
+        ctx.strokeStyle = isHighlighted ? highlightColor : defaultColor;
+        
+        // EXTREMELY LOW OPACITY: 0.04 normally, 0.2 when mouse hovers over it
+        ctx.globalAlpha = isHighlighted ? 0.2 : 0.04; 
+
+        if (Math.random() > 0.5) {
+          ctx.fillRect(x + 4, y + 4, blockSize - 8, blockSize - 8);
+        } else {
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 5, y + 5, blockSize - 10, blockSize - 10);
+        }
+
+        if (y > canvas.height && Math.random() > 0.95) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+      
+      // Reset global alpha
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Run animation slightly slower
+    setInterval(drawMatrix, 60);
+  </script>
 
   <script>
   (function(){
     var input = document.getElementById('text-input');
-    var canvas = document.getElementById('qr-canvas');
+    var canvasEl = document.getElementById('qr-canvas');
     var sizeSelect = document.getElementById('qr-size');
     var eclSelect = document.getElementById('qr-ecl');
 
@@ -65,9 +183,9 @@
         var qr = qrcode(0, ecl);
         qr.addData(text);
         qr.make();
-        canvas.innerHTML = qr.createImgTag(cellSize, 0);
+        canvasEl.innerHTML = qr.createImgTag(cellSize, 0);
       } catch(e) {
-        canvas.innerHTML = '<p style="color:var(--error);font-size:0.85rem;">Text too long for this error correction level. Try a lower level.</p>';
+        canvasEl.innerHTML = '<p style="color:var(--error);font-size:0.85rem;">Text too long for this error correction level. Try a lower level.</p>';
       }
     }
 
@@ -76,7 +194,7 @@
     eclSelect.addEventListener('change', generate);
 
     document.getElementById('btn-download').addEventListener('click', function(){
-      var img = canvas.querySelector('img');
+      var img = canvasEl.querySelector('img');
       if(!img) return;
       var a = document.createElement('a');
       a.href = img.src;
@@ -85,7 +203,7 @@
     });
 
     document.getElementById('btn-copy').addEventListener('click', function(){
-      var img = canvas.querySelector('img');
+      var img = canvasEl.querySelector('img');
       if(!img) return;
       var c = document.createElement('canvas');
       c.width = img.naturalWidth; c.height = img.naturalHeight;

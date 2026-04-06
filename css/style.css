@@ -1034,3 +1034,35 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
 }
+
+/* ============================================
+   INTERACTIVE 3D & DRAG EFFECTS (ADDED)
+   ============================================ */
+.glass {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.glass.is-hovered {
+  transition: none !important; /* Instantly track mouse movement */
+  z-index: 50; /* Bring hovered cards to the front */
+}
+.input-panel__header {
+  cursor: grab; /* Indicates the panel can be dragged */
+}
+.input-panel__header:active {
+  cursor: grabbing;
+}
+.hero-spline-container {
+  position: absolute;
+  top: -100px;
+  right: -50px;
+  width: 400px;
+  height: 400px;
+  z-index: 0;
+  pointer-events: auto; /* Allows user to click and drag the 3D object */
+}
+@media (max-width: 768px) {
+  .hero-spline-container {
+    display: none; /* Hide 3D object on small mobile to save space/performance */
+  }
+}

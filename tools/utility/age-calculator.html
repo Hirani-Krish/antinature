@@ -7,47 +7,67 @@
   <meta name="description" content="Calculate your exact age in years, months, days, hours, minutes. Also shows next birthday countdown. Free, no login.">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/theme.js"></script>
+  <script src="../../js/interactive.js"></script> <!-- Draggable/3D Hover script -->
+  <style>
+    body { position: relative; }
+  </style>
 </head>
 <body>
+
+  <!-- Floating Time Particles Canvas -->
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; z-index: -1; pointer-events: none;"></canvas>
+
   <nav class="navbar"></nav>
   <script src="../../js/navbar.js"></script>
 
-  <main class="page"><div class="container" style="max-width:750px;">
-    <header class="page-header animate-in">
-      <div class="page-header__breadcrumb"><a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span><a href="#">Utility</a><span class="page-header__breadcrumb-sep">›</span><span>Age Calculator</span></div>
-      <h1 class="page-header__title">Age Calculator</h1>
-      <p class="page-header__subtitle">Find your exact age and days until your next birthday.</p>
-    </header>
+  <main class="page">
+    <div class="container" style="max-width:750px;">
+      <header class="page-header animate-in">
+        <div class="page-header__breadcrumb">
+          <a href="../../index.html">Home</a><span class="page-header__breadcrumb-sep">›</span>
+          <a href="#">Utility</a><span class="page-header__breadcrumb-sep">›</span>
+          <span>Age Calculator</span>
+        </div>
+        <h1 class="page-header__title">Age Calculator</h1>
+        <p class="page-header__subtitle">Find your exact age and days until your next birthday.</p>
+      </header>
 
-    <div class="glass glass--static input-panel animate-in">
-      <label style="font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:var(--space-sm);font-weight:500;">Date of Birth</label>
-      <input type="date" id="dob" style="padding:12px 16px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);font-size:1rem;outline:none;width:100%;max-width:300px;">
-    </div>
+      <!-- Input Panel (Draggable) -->
+      <div class="glass glass--static input-panel animate-in">
+        <div class="input-panel__header"><span class="input-panel__title">Date of Birth (Drag Me)</span></div>
+        <input type="date" id="dob" style="padding:12px 16px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);font-size:1rem;outline:none;width:100%;max-width:300px; cursor: pointer;">
+      </div>
 
-    <div class="stats-grid animate-in" id="result" style="display:none;">
-      <div class="glass stat-card"><div class="stat-card__value" id="s-years">0</div><div class="stat-card__label">Years</div></div>
-      <div class="glass stat-card"><div class="stat-card__value" id="s-months">0</div><div class="stat-card__label">Months</div></div>
-      <div class="glass stat-card"><div class="stat-card__value" id="s-days">0</div><div class="stat-card__label">Days</div></div>
-      <div class="glass stat-card"><div class="stat-card__value" id="s-next">0</div><div class="stat-card__label">Next Birthday</div></div>
-    </div>
+      <!-- Stats Grid (Gets 3D Hover effect from interactive.js automatically) -->
+      <div class="stats-grid animate-in" id="result" style="display:none;">
+        <div class="glass stat-card"><div class="stat-card__value" id="s-years">0</div><div class="stat-card__label">Years</div></div>
+        <div class="glass stat-card"><div class="stat-card__value" id="s-months">0</div><div class="stat-card__label">Months</div></div>
+        <div class="glass stat-card"><div class="stat-card__value" id="s-days">0</div><div class="stat-card__label">Days</div></div>
+        <div class="glass stat-card"><div class="stat-card__value" id="s-next">0</div><div class="stat-card__label">Next Birthday</div></div>
+      </div>
 
-    <div class="glass glass--static details-panel animate-in" id="details" style="display:none;">
-      <div class="details-panel__title">More Details</div>
-      <div class="details-grid">
-        <div class="detail-row"><span class="detail-row__label">Total Months</span><span class="detail-row__value" id="d-months">0</span></div>
-        <div class="detail-row"><span class="detail-row__label">Total Weeks</span><span class="detail-row__value" id="d-weeks">0</span></div>
-        <div class="detail-row"><span class="detail-row__label">Total Days</span><span class="detail-row__value" id="d-days">0</span></div>
-        <div class="detail-row"><span class="detail-row__label">Total Hours</span><span class="detail-row__value" id="d-hours">0</span></div>
-        <div class="detail-row"><span class="detail-row__label">Total Minutes</span><span class="detail-row__value" id="d-minutes">0</span></div>
-        <div class="detail-row"><span class="detail-row__label">Born On</span><span class="detail-row__value" id="d-day">—</span></div>
-        <div class="detail-row"><span class="detail-row__label">Zodiac Sign</span><span class="detail-row__value" id="d-zodiac">—</span></div>
-        <div class="detail-row"><span class="detail-row__label">Birth Year (Chinese)</span><span class="detail-row__value" id="d-chinese">—</span></div>
+      <!-- Details Panel (Draggable) -->
+      <div class="glass glass--static input-panel animate-in" id="details" style="display:none;">
+        <div class="input-panel__header"><span class="input-panel__title">More Details (Drag Me)</span></div>
+        <div class="details-grid">
+          <div class="detail-row"><span class="detail-row__label">Total Months</span><span class="detail-row__value" id="d-months">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Total Weeks</span><span class="detail-row__value" id="d-weeks">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Total Days</span><span class="detail-row__value" id="d-days">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Total Hours</span><span class="detail-row__value" id="d-hours">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Total Minutes</span><span class="detail-row__value" id="d-minutes">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Born On</span><span class="detail-row__value" id="d-day">—</span></div>
+          <div class="detail-row"><span class="detail-row__label">Zodiac Sign</span><span class="detail-row__value" id="d-zodiac">—</span></div>
+          <div class="detail-row"><span class="detail-row__label">Birth Year (Chinese)</span><span class="detail-row__value" id="d-chinese">—</span></div>
+        </div>
       </div>
     </div>
-  </div></main>
+  </main>
 
-  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
+    <div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div>
+  </footer>
 
+  <!-- Age Calculator Logic -->
   <script>
   (function(){
     var dob=document.getElementById('dob');
@@ -90,10 +110,123 @@
       document.getElementById('d-day').textContent=days[birth.getDay()];
       document.getElementById('d-zodiac').textContent=getZodiac(birth.getMonth()+1,birth.getDate());
       document.getElementById('d-chinese').textContent='Year of the '+chinese[birth.getFullYear()%12];
+      
       document.getElementById('result').style.display='';
       document.getElementById('details').style.display='';
+
+      // Trigger a resize event to adjust canvas height for the new panels
+      window.dispatchEvent(new Event('resize'));
     });
   })();
+  </script>
+
+  <!-- Interactive Floating Time Particles Logic -->
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let timeParticles = [];
+    let mouseX = -1000, mouseY = -1000;
+
+    const timeWords = ["Years", "Months", "Weeks", "Days", "Hours", "Minutes", "Seconds", "Time", "Past", "Future"];
+
+    window.addEventListener('mousemove', (e) => { 
+      mouseX = e.pageX; 
+      mouseY = e.pageY; 
+    });
+
+    function initCanvas() {
+      canvas.width = document.body.scrollWidth;
+      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+      
+      timeParticles = [];
+      const density = window.innerWidth < 768 ? 20 : 40; 
+      
+      for (let i = 0; i < density; i++) {
+        timeParticles.push(new TimeParticle());
+      }
+    }
+
+    class TimeParticle {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(randomY = false) {
+        this.word = timeWords[Math.floor(Math.random() * timeWords.length)];
+        this.x = Math.random() * canvas.width;
+        // Start from bottom and float up
+        this.y = randomY ? Math.random() * canvas.height : canvas.height + 50; 
+        
+        // Base upward speed
+        this.baseSpeed = Math.random() * 0.5 + 0.2; 
+        this.speed = this.baseSpeed;
+        
+        this.fontSize = Math.random() * 8 + 10; // 10px to 18px
+      }
+
+      update() {
+        let textWidth = ctx.measureText(this.word).width;
+        let centerX = this.x + (textWidth / 2);
+        
+        let dx = mouseX - centerX;
+        let dy = mouseY - this.y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+
+        let isHovered = dist < 150;
+
+        // Interaction: Time Warp (Speed up and get bigger near mouse)
+        if (isHovered) {
+          let force = (150 - dist) / 150;
+          this.speed = this.baseSpeed + (force * 3); // Fly upwards faster
+        } else {
+          // Slowly return to base speed
+          this.speed += (this.baseSpeed - this.speed) * 0.1;
+        }
+
+        this.y -= this.speed;
+
+        // Reset if it floats off top
+        if (this.y < -50) {
+          this.reset(false);
+        }
+
+        this.draw(isHovered, dist);
+      }
+
+      draw(isHovered, dist) {
+        let themeColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#8b909e';
+        let accentColor = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#4a6fa5';
+
+        if (isHovered) {
+          let intensity = (150 - dist) / 150;
+          ctx.font = `bold ${this.fontSize + (intensity * 4)}px 'Inter', sans-serif`;
+          ctx.fillStyle = accentColor;
+          ctx.globalAlpha = 0.1 + (intensity * 0.3); 
+        } else {
+          ctx.font = `${this.fontSize}px 'Inter', sans-serif`;
+          ctx.fillStyle = themeColor;
+          ctx.globalAlpha = 0.05; 
+        }
+
+        ctx.fillText(this.word, this.x, this.y);
+      }
+    }
+
+    window.addEventListener('resize', initCanvas);
+    const resizeObserver = new ResizeObserver(() => {
+      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+    });
+    resizeObserver.observe(document.body);
+
+    initCanvas();
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      timeParticles.forEach(p => p.update());
+      requestAnimationFrame(animate);
+    }
+    animate();
   </script>
 </body>
 </html>

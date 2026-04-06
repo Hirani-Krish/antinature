@@ -8,18 +8,81 @@
   <meta name="keywords" content="word counter, character counter, letter counter, sentence counter, reading time, online text analysis">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/theme.js"></script>
+  <script src="../../js/interactive.js"></script>
+  <style>
+    body { position: relative; }
+
+    /* 3D Engine & Card Styling */
+    #bg-container {
+      position: absolute; 
+      top: 0; left: 0; right: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+      perspective: 1200px; /* Stronger perspective for laying-down cards */
+      transform-style: preserve-3d; /* Allows genuine 3D intersection */
+    }
+
+    .letter-card {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .letter-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--text-tertiary);
+      background: var(--glass-bg);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .letter-face--back {
+      transform: rotateY(180deg);
+    }
+
+    /* Make the ruins slightly transparent to blend together better */
+    .static-card .letter-face {
+      opacity: 0.8;
+    }
+
+    .pyramid-stage {
+      height: 280px; 
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      color: var(--text-tertiary);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      padding-bottom: 20px;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ======= NAVBAR ======= -->
+  <!-- DOM Container for the 3D spinning cards -->
+  <div id="bg-container"></div>
+
   <nav class="navbar"></nav>
   <script src="../../js/navbar.js"></script>
 
-  <!-- ======= PAGE CONTENT ======= -->
   <main class="page">
     <div class="container">
-
-      <!-- Page Header -->
       <header class="page-header animate-in">
         <div class="page-header__breadcrumb">
           <a href="../../index.html">Home</a>
@@ -32,7 +95,6 @@
         <p class="page-header__subtitle">Count words, characters, sentences, and more — instantly as you type.</p>
       </header>
 
-      <!-- Stats Cards -->
       <div class="stats-grid animate-in">
         <div class="glass stat-card">
           <div class="stat-card__value" id="stat-words">0</div>
@@ -52,81 +114,224 @@
         </div>
       </div>
 
-      <!-- Text Input Area -->
       <div class="glass glass--static input-panel animate-in">
         <div class="input-panel__header">
-          <span class="input-panel__title">Your Text</span>
+          <span class="input-panel__title">Your Text (Drag Me)</span>
           <div class="input-panel__actions">
             <button class="btn btn--small" id="btn-paste">⎘ Paste</button>
             <button class="btn btn--small" id="btn-copy">⧉ Copy</button>
             <button class="btn btn--small" id="btn-clear">✕ Clear</button>
           </div>
         </div>
-        <textarea 
-          class="textarea" 
-          id="text-input" 
-          placeholder="Start typing or paste your text here…"
-          autofocus
-          spellcheck="false"
-        ></textarea>
+        <textarea class="textarea" id="text-input" placeholder="Start typing or paste your text here…" autofocus spellcheck="false"></textarea>
       </div>
 
-      <!-- Detailed Breakdown -->
       <div class="glass glass--static details-panel animate-in">
         <div class="details-panel__title">Detailed Breakdown</div>
         <div class="details-grid">
-          <div class="detail-row">
-            <span class="detail-row__label">Characters (no spaces)</span>
-            <span class="detail-row__value" id="detail-chars-no-space">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Letters</span>
-            <span class="detail-row__value" id="detail-letters">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Numbers</span>
-            <span class="detail-row__value" id="detail-numbers">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Special Characters</span>
-            <span class="detail-row__value" id="detail-special">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Spaces</span>
-            <span class="detail-row__value" id="detail-spaces">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Lines</span>
-            <span class="detail-row__value" id="detail-lines">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Avg. Word Length</span>
-            <span class="detail-row__value" id="detail-avg-word">0</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Longest Word</span>
-            <span class="detail-row__value" id="detail-longest-word">—</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Reading Time</span>
-            <span class="detail-row__value" id="detail-read-time">0 sec</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-row__label">Speaking Time</span>
-            <span class="detail-row__value" id="detail-speak-time">0 sec</span>
-          </div>
+          <div class="detail-row"><span class="detail-row__label">Characters (no spaces)</span><span class="detail-row__value" id="detail-chars-no-space">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Letters</span><span class="detail-row__value" id="detail-letters">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Numbers</span><span class="detail-row__value" id="detail-numbers">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Special Characters</span><span class="detail-row__value" id="detail-special">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Spaces</span><span class="detail-row__value" id="detail-spaces">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Lines</span><span class="detail-row__value" id="detail-lines">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Avg. Word Length</span><span class="detail-row__value" id="detail-avg-word">0</span></div>
+          <div class="detail-row"><span class="detail-row__label">Longest Word</span><span class="detail-row__value" id="detail-longest-word">—</span></div>
+          <div class="detail-row"><span class="detail-row__label">Reading Time</span><span class="detail-row__value" id="detail-read-time">0 sec</span></div>
+          <div class="detail-row"><span class="detail-row__label">Speaking Time</span><span class="detail-row__value" id="detail-speak-time">0 sec</span></div>
         </div>
+      </div>
+
+      <!-- SPACER -->
+      <div class="pyramid-stage">
+        <!-- ↓ The Ruins ↓ -->
       </div>
 
     </div>
   </main>
 
-  <!-- ======= FOOTER ======= -->
-  <footer class="footer">
+  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
     <div class="container">
       <p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p>
     </div>
   </footer>
+
+  <!-- 3D Card Engine Script -->
+  <script>
+    const container = document.getElementById('bg-container');
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const cardSize = 30; // approx width/height of a card
+    
+    let cols;
+    let pilePxHeights = []; // Stores the actual pixel height of the pile per column
+    let fallingLeaves = [];
+    let floorY = 0;
+
+    function createCardElement(char, isStatic = false) {
+      const card = document.createElement('div');
+      card.className = `letter-card ${isStatic ? 'static-card' : ''}`;
+      
+      const front = document.createElement('div');
+      front.className = 'letter-face';
+      front.textContent = char;
+
+      const back = document.createElement('div');
+      back.className = 'letter-face letter-face--back';
+      back.textContent = char;
+
+      card.appendChild(front);
+      card.appendChild(back);
+      return card;
+    }
+
+    function init3DEngine() {
+      container.innerHTML = '';
+      
+      const width = document.body.scrollWidth;
+      const height = Math.max(document.body.scrollHeight, window.innerHeight); 
+      
+      container.style.width = width + 'px';
+      container.style.height = height + 'px';
+      
+      cols = Math.floor(width / cardSize);
+      floorY = height - 100; // Floor sits above the footer
+      
+      let centerCol = Math.floor(cols / 2);
+      
+      // Maximum height of the pyramid peak in pixels
+      let maxPilePx = 150; 
+
+      pilePxHeights = new Array(cols).fill(0);
+
+      // 1. Generate Static "Dumped Leaves" Pyramid
+      for (let c = 0; c < cols; c++) {
+        let dist = Math.abs(c - centerCol);
+        
+        // Slope calculation: drops off as you move away from center
+        let heightForCol = maxPilePx - (dist * 12); 
+        
+        // Randomly scatter edges so it looks organic, not perfectly geometric
+        if (heightForCol < 20 && Math.random() > 0.4) heightForCol = 0; 
+        if (heightForCol < 0) heightForCol = 0;
+
+        pilePxHeights[c] = heightForCol;
+
+        // Since cards lay flat, they don't add much vertical height per card.
+        // We simulate a pile by spawning a card every ~4-6 pixels vertically.
+        let numCardsInPile = Math.floor(heightForCol / 5);
+
+        for (let i = 0; i < numCardsInPile; i++) {
+          let char = letters[Math.floor(Math.random() * letters.length)];
+          let card = createCardElement(char, true);
+          
+          // Add heavy spatial noise so they look dumped and chaotic
+          let x = (c * cardSize) + (Math.random() - 0.5) * 40; // Messy X spread
+          let y = floorY - (i * 5) + (Math.random() - 0.5) * 10; // Build up from floor
+          let z = (Math.random() - 0.5) * 80; // Depth! Pushes some forward, some back
+          
+          // "Sleeping" Rotations (lays the cards flat on the ground)
+          // X rotation between 60deg and 85deg (or negative)
+          let rx = (60 + Math.random() * 25) * (Math.random() > 0.5 ? 1 : -1);
+          let ry = Math.random() * 360; // Random twist
+          let rz = Math.random() * 360; // Random spin
+
+          card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+          container.appendChild(card);
+        }
+      }
+
+      // 2. Generate Falling Leaves
+      fallingLeaves = [];
+      const numLeaves = 15; 
+      for (let i = 0; i < numLeaves; i++) {
+        fallingLeaves.push(new FallingCard(true));
+      }
+    }
+
+    class FallingCard {
+      constructor(initialLoad = false) {
+        this.el = createCardElement('A', false);
+        container.appendChild(this.el);
+        this.reset(initialLoad);
+      }
+      
+      reset(initialLoad = false) {
+        this.baseX = Math.random() * window.innerWidth;
+        
+        // Spawn above viewport
+        let spawnY = window.scrollY - 100;
+
+        if (initialLoad) {
+          // On first load, scatter them across the current visible screen
+          this.y = window.scrollY + (Math.random() * window.innerHeight);
+        } else {
+          this.y = spawnY;
+        }
+        
+        this.x = this.baseX;
+        
+        let newChar = letters[Math.floor(Math.random() * letters.length)];
+        this.el.children[0].textContent = newChar;
+        this.el.children[1].textContent = newChar;
+        
+        this.speedY = Math.random() * 0.8 + 0.4; 
+        
+        this.swingAngle = Math.random() * Math.PI * 2;
+        this.swingSpeed = Math.random() * 0.02 + 0.01;
+        this.swingRadius = Math.random() * 40 + 20;
+
+        // 3D Tumble Rotations
+        this.rotX = Math.random() * 360;
+        this.rotY = Math.random() * 360;
+        this.rotZ = Math.random() * 360;
+        this.spinX = (Math.random() - 0.5) * 3;
+        this.spinY = (Math.random() - 0.5) * 3;
+        this.spinZ = (Math.random() - 0.5) * 1;
+      }
+
+      update() {
+        this.y += this.speedY;
+        
+        this.swingAngle += this.swingSpeed;
+        this.x = this.baseX + Math.sin(this.swingAngle) * this.swingRadius;
+
+        this.rotX += this.spinX;
+        this.rotY += this.spinY;
+        this.rotZ += this.spinZ;
+
+        let currentCol = Math.floor(this.baseX / cardSize);
+        if (currentCol < 0) currentCol = 0;
+        if (currentCol >= cols) currentCol = cols - 1;
+
+        // Target Y: The pixel height of the dump pile in this column
+        let targetY = floorY - pilePxHeights[currentCol];
+
+        this.el.style.transform = `translate3d(${this.x}px, ${this.y}px, 0) rotateX(${this.rotX}deg) rotateY(${this.rotY}deg) rotateZ(${this.rotZ}deg)`;
+
+        // Vanish when hitting the pile
+        if (this.y > targetY) {
+          this.reset(false);
+        }
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      clearTimeout(window.resizeTimer);
+      window.resizeTimer = setTimeout(init3DEngine, 200);
+    });
+    resizeObserver.observe(document.body);
+
+    function animateEngine() {
+      fallingLeaves.forEach(leaf => leaf.update());
+      requestAnimationFrame(animateEngine);
+    }
+    
+    setTimeout(() => {
+      init3DEngine();
+      animateEngine();
+    }, 50);
+
+  </script>
 
   <script src="../../js/word-counter.js"></script>
 </body>

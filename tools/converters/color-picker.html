@@ -7,26 +7,33 @@
   <meta name="description" content="Pick colors and convert between HEX, RGB, and HSL formats. Free online color tool — no login required.">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/theme.js"></script>
+  <script src="../../js/interactive.js"></script> <!-- Draggable/3D Hover script -->
   <style>
+    body { position: relative; }
+    
     .color-hero { display: flex; gap: var(--space-xl); align-items: flex-start; }
-    .color-preview { width: 200px; height: 200px; border-radius: var(--radius-lg); border: 1px solid var(--border-light); flex-shrink: 0; transition: background var(--transition-fast); cursor: pointer; position: relative; overflow: hidden; }
+    .color-preview { width: 200px; height: 200px; border-radius: var(--radius-lg); border: 1px solid var(--border-light); flex-shrink: 0; transition: background var(--transition-fast); cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
     .color-preview input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
     .color-values { flex: 1; display: flex; flex-direction: column; gap: var(--space-sm); }
     .color-field { display: flex; align-items: center; gap: var(--space-sm); }
     .color-field__label { font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; width: 40px; flex-shrink: 0; }
-    .color-field__input { flex: 1; padding: 8px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--glass-bg); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.9rem; outline: none; }
+    .color-field__input { flex: 1; padding: 8px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: var(--glass-bg); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.9rem; outline: none; transition: box-shadow var(--transition-fast); }
     .color-field__input:focus { border-color: var(--accent-border); box-shadow: 0 0 0 3px var(--accent-soft); }
     .color-field__copy { padding: 6px 10px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 0.75rem; transition: all var(--transition-fast); }
-    .color-field__copy:hover { background: var(--accent); color: white; border-color: var(--accent); }
+    .color-field__copy:hover { background: var(--text-primary); color: var(--bg-page); border-color: var(--text-primary); }
     .palette-section { margin-top: var(--space-xl); }
     .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: var(--space-xs); margin-top: var(--space-md); }
     .palette-swatch { aspect-ratio: 1; border-radius: var(--radius-sm); cursor: pointer; border: 2px solid transparent; transition: all var(--transition-fast); }
-    .palette-swatch:hover { transform: scale(1.1); border-color: var(--text-primary); }
-    .palette-swatch--active { border-color: var(--accent); transform: scale(1.1); }
+    .palette-swatch:hover { transform: scale(1.1); border-color: var(--text-primary); z-index: 2; position: relative; }
+    
     @media(max-width:600px) { .color-hero { flex-direction: column; align-items: stretch; } .color-preview { width: 100%; height: 150px; } }
   </style>
 </head>
 <body>
+
+  <!-- Liquid Color Aura Background Canvas -->
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; z-index: -1; pointer-events: none;"></canvas>
+
   <nav class="navbar"></nav>
   <script src="../../js/navbar.js"></script>
 
@@ -38,6 +45,7 @@
     </header>
 
     <div class="glass glass--static input-panel animate-in">
+      <div class="input-panel__header"><span class="input-panel__title">Color Tool (Drag Me)</span></div>
       <div class="color-hero">
         <div class="color-preview" id="preview" style="background:#4a6fa5;">
           <input type="color" id="picker" value="#4a6fa5">
@@ -52,13 +60,14 @@
     </div>
 
     <div class="glass glass--static input-panel palette-section animate-in">
-      <div class="input-panel__header"><span class="input-panel__title">Color Palette</span></div>
+      <div class="input-panel__header"><span class="input-panel__title">Color Palette (Drag Me)</span></div>
       <div class="palette-grid" id="palette"></div>
     </div>
   </div></main>
 
-  <footer class="footer"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
+  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;"><div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div></footer>
 
+  <!-- Core Color Picker Logic -->
   <script>
   (function(){
     var picker = document.getElementById('picker');
@@ -121,6 +130,120 @@
 
     updateFromHex('#4a6fa5');
   })();
+  </script>
+
+  <!-- Interactive Liquid Color Aura Background Logic -->
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let orbs = [];
+    let mouseX = -1000, mouseY = -1000;
+    
+    // Track mouse for interactivity
+    window.addEventListener('mousemove', (e) => { 
+      mouseX = e.pageX; 
+      mouseY = e.pageY; 
+    });
+
+    function initCanvas() {
+      canvas.width = document.body.scrollWidth;
+      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+      
+      orbs = [];
+      const numOrbs = 12; // Just enough for a smooth fluid background
+      for (let i = 0; i < numOrbs; i++) {
+        orbs.push(new LiquidOrb());
+      }
+    }
+
+    class LiquidOrb {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 150 + 100; // Big, soft circles
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        // Natural pulsing
+        this.angle = Math.random() * Math.PI * 2;
+      }
+      
+      update() {
+        // Gently follow the mouse
+        let dx = mouseX - this.x;
+        let dy = mouseY - this.y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < 400) { // Attraction radius
+          this.vx += dx * 0.0002;
+          this.vy += dy * 0.0002;
+        }
+
+        // Apply friction so they don't move too fast
+        this.vx *= 0.99;
+        this.vy *= 0.99;
+
+        // Normal drifting
+        this.x += this.vx;
+        this.y += this.vy;
+        this.angle += 0.02;
+
+        // Bounce off edges gently
+        if (this.x < -this.radius) this.vx += 0.1;
+        if (this.x > canvas.width + this.radius) this.vx -= 0.1;
+        if (this.y < -this.radius) this.vy += 0.1;
+        if (this.y > canvas.height + this.radius) this.vy -= 0.1;
+      }
+
+      draw(r, g, b) {
+        // Create a soft glowing radial gradient for each orb
+        // Pulse size slightly
+        let rPulse = this.radius + Math.sin(this.angle) * 20;
+        let gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, rPulse);
+        
+        // Inner color is 15% opacity, fades to 0%
+        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.15)`);
+        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, rPulse, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+    }
+
+    window.addEventListener('resize', initCanvas);
+    const resizeObserver = new ResizeObserver(() => {
+      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+    });
+    resizeObserver.observe(document.body);
+
+    initCanvas();
+
+    // Helper to extract r,g,b from the tool's RGB input field
+    function getCurrentRGB() {
+      const rgbStr = document.getElementById('rgb-val').value;
+      const match = rgbStr.match(/\d+/g);
+      if (match && match.length >= 3) {
+        return { r: match[0], g: match[1], b: match[2] };
+      }
+      return { r: 74, g: 111, b: 165 }; // Fallback to AntiNature blue
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Get the live color from the tool
+      const color = getCurrentRGB();
+
+      orbs.forEach(orb => {
+        orb.update();
+        orb.draw(color.r, color.g, color.b);
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
   </script>
 </body>
 </html>
