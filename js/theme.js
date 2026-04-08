@@ -28,24 +28,6 @@
       });
     }
 
-    /* Mobile menu toggle */
-    const menuBtn = document.getElementById('menu-toggle');
-    const nav = document.getElementById('main-nav');
-    if (menuBtn && nav) {
-      menuBtn.addEventListener('click', function() {
-        nav.classList.toggle('navbar__nav--open');
-        const isOpen = nav.classList.contains('navbar__nav--open');
-        menuBtn.setAttribute('aria-expanded', isOpen);
-        menuBtn.innerHTML = isOpen ? '✕' : '☰';
-      });
-
-      /* Close menu on link click (mobile) */
-      nav.querySelectorAll('.navbar__link').forEach(function(link) {
-        link.addEventListener('click', function() {
-          nav.classList.remove('navbar__nav--open');
-          menuBtn.innerHTML = '☰';
-        });
-      });
-    }
+    /* Mobile menu logic has been centralized to navbar.js */
   });
 })();

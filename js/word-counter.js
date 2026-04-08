@@ -1,178 +1,156 @@
-/* ============================================
-   Word & Character Counter — Logic
-   ============================================ */
-(function() {
-  document.addEventListener('DOMContentLoaded', function() {
-    const textarea = document.getElementById('text-input');
-    if (!textarea) return;
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('text-input');
+  const btnCalculate = document.getElementById('btn-calculate');
 
-    /* Stat elements */
-    const stats = {
-      words:       document.getElementById('stat-words'),
-      characters:  document.getElementById('stat-characters'),
-      sentences:   document.getElementById('stat-sentences'),
-      paragraphs:  document.getElementById('stat-paragraphs'),
-    };
+  // Top Stats
+  const statWords = document.getElementById('stat-words');
+  const statChars = document.getElementById('stat-characters');
+  const statSentences = document.getElementById('stat-sentences');
+  const statParagraphs = document.getElementById('stat-paragraphs');
 
-    const details = {
-      charsNoSpace:  document.getElementById('detail-chars-no-space'),
-      letters:       document.getElementById('detail-letters'),
-      numbers:       document.getElementById('detail-numbers'),
-      special:       document.getElementById('detail-special'),
-      spaces:        document.getElementById('detail-spaces'),
-      lines:         document.getElementById('detail-lines'),
-      avgWordLen:    document.getElementById('detail-avg-word'),
-      readTime:      document.getElementById('detail-read-time'),
-      speakTime:     document.getElementById('detail-speak-time'),
-      longestWord:   document.getElementById('detail-longest-word'),
-    };
+  // Detailed Stats
+  const detCharsNoSpace = document.getElementById('detail-chars-no-space');
+  const detLetters = document.getElementById('detail-letters');
+  const detNumbers = document.getElementById('detail-numbers');
+  const detSpecial = document.getElementById('detail-special');
+  const detSpaces = document.getElementById('detail-spaces');
+  const detLines = document.getElementById('detail-lines');
+  const detAvgWord = document.getElementById('detail-avg-word');
+  const detLongestWord = document.getElementById('detail-longest-word');
 
-    function analyze(text) {
-      /* Empty check */
-      if (!text || text.trim().length === 0) {
-        return {
-          words: 0, characters: 0, sentences: 0, paragraphs: 0,
-          charsNoSpace: 0, letters: 0, numbers: 0, special: 0,
-          spaces: 0, lines: 0, avgWordLen: 0, readTime: '0 sec',
-          speakTime: '0 sec', longestWord: '—'
-        };
+  // The Main Calculation Engine
+  function analyzeText() {
+    const text = input.value;
+
+    if (!text || text.trim().length === 0) {
+      statWords.textContent = '0'; statChars.textContent = '0';
+      statSentences.textContent = '0'; statParagraphs.textContent = '0';
+      detCharsNoSpace.textContent = '0'; detLetters.textContent = '0';
+      detNumbers.textContent = '0'; detSpecial.textContent = '0';
+      detSpaces.textContent = '0'; detLines.textContent = '0';
+      detAvgWord.textContent = '0'; detLongestWord.textContent = '—';
+      return;
+    }
+
+    // 1. CHARACTER COUNT (Emoji safe)
+    const charArray = Array.from(text);
+    const totalChars = charArray.length;
+
+    // 2. SPACES & LINES
+    const totalSpaces = (text.match(/[ \t]/g) || []).length;
+    const totalLines = (text.match(/\n/g) || []).length + 1;
+    const charsNoSpace = totalChars - (text.match(/\s/g) || []).length;
+
+    // 3. LETTERS & NUMBERS (Unicode aware)
+    const totalLetters = (text.match(/\p{L}/gu) || []).length;
+    const totalNumbers = (text.match(/\p{N}/gu) || []).length;
+    const totalSpecial = Math.max(0, totalChars - totalLetters - totalNumbers - (text.match(/\s/g) || []).length);
+
+    // 4. WORDS
+    let wordArray = [];
+    if (window.Intl && Intl.Segmenter) {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+      const segments = segmenter.segment(text);
+      for (let seg of segments) {
+        if (seg.isWordLike) wordArray.push(seg.segment);
       }
-
-      const characters = text.length;
-      const charsNoSpace = text.replace(/\s/g, '').length;
-
-      /* Words — split by whitespace, filter empty */
-      const wordArray = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
-      const words = wordArray.length;
-
-      /* Sentences — split by . ? ! (with some smarts) */
-      const sentenceMatches = text.match(/[^.!?]*[.!?]+/g);
-      const sentences = sentenceMatches ? sentenceMatches.length : (words > 0 ? 1 : 0);
-
-      /* Paragraphs — split by double newline or single newline with content */
-      const paraArray = text.split(/\n\s*\n|\n/).filter(function(p) { return p.trim().length > 0; });
-      const paragraphs = paraArray.length;
-
-      /* Character breakdown */
-      const letters = (text.match(/[a-zA-Z]/g) || []).length;
-      const numbers = (text.match(/[0-9]/g) || []).length;
-      const spaces = (text.match(/\s/g) || []).length;
-      const special = charsNoSpace - letters - numbers;
-
-      /* Lines */
-      const lines = text.split('\n').length;
-
-      /* Average word length */
-      const avgWordLen = words > 0 
-        ? (wordArray.reduce(function(sum, w) { return sum + w.replace(/[^a-zA-Z0-9]/g, '').length; }, 0) / words).toFixed(1)
-        : 0;
-
-      /* Read time (avg 200 wpm) */
-      const readMinutes = words / 200;
-      var readTime;
-      if (readMinutes < 1) {
-        readTime = Math.ceil(readMinutes * 60) + ' sec';
-      } else {
-        readTime = Math.floor(readMinutes) + ' min ' + Math.round((readMinutes % 1) * 60) + ' sec';
-      }
-
-      /* Speak time (avg 130 wpm) */
-      const speakMinutes = words / 130;
-      var speakTime;
-      if (speakMinutes < 1) {
-        speakTime = Math.ceil(speakMinutes * 60) + ' sec';
-      } else {
-        speakTime = Math.floor(speakMinutes) + ' min ' + Math.round((speakMinutes % 1) * 60) + ' sec';
-      }
-
-      /* Longest word */
-      const longestWord = words > 0
-        ? wordArray.reduce(function(a, b) { return a.length >= b.length ? a : b; }, '')
-        : '—';
-
-      return {
-        words: words,
-        characters: characters,
-        sentences: sentences,
-        paragraphs: paragraphs,
-        charsNoSpace: charsNoSpace,
-        letters: letters,
-        numbers: numbers,
-        special: special,
-        spaces: spaces,
-        lines: lines,
-        avgWordLen: avgWordLen,
-        readTime: readTime,
-        speakTime: speakTime,
-        longestWord: longestWord.length > 20 ? longestWord.substring(0, 20) + '…' : longestWord
-      };
+    } else {
+      wordArray = text.match(/[\p{L}\p{N}_-]+/gu) || []; 
     }
+    const totalWords = wordArray.length;
 
-    function formatNumber(n) {
-      return n.toLocaleString('en-IN');
-    }
+    // 5. SENTENCES
+    let sanitizedText = text.replace(/\b(Mr|Mrs|Ms|Dr|Prof|Rev|Capt|Sgt|St|Inc|Ltd|Jr|Sr|vs|etc|U\.S|D\.C)\./gi, "$1_DOT_");
+    sanitizedText = sanitizedText.replace(/\.{2,}/g, "_ELLIPSIS_"); 
+    const sentenceArray = sanitizedText.split(/[.!?]+(?=\s+|$)/).filter(s => s.trim().length > 0);
+    const totalSentences = sentenceArray.length;
 
-    function update() {
-      const result = analyze(textarea.value);
+    // 6. PARAGRAPHS
+    const paragraphArray = text.split(/\n+/).filter(p => p.trim().length > 0);
+    const totalParagraphs = paragraphArray.length;
 
-      /* Update main stats */
-      if (stats.words)      stats.words.textContent      = formatNumber(result.words);
-      if (stats.characters)  stats.characters.textContent  = formatNumber(result.characters);
-      if (stats.sentences)   stats.sentences.textContent   = formatNumber(result.sentences);
-      if (stats.paragraphs)  stats.paragraphs.textContent  = formatNumber(result.paragraphs);
+    // 7. LONGEST WORD & AVG LENGTH
+    let longestWord = "";
+    let totalWordLength = 0;
+    
+    wordArray.forEach(w => {
+      let wLen = Array.from(w).length; 
+      totalWordLength += wLen;
+      if (wLen > Array.from(longestWord).length) longestWord = w;
+    });
+    
+    const avgWordLength = totalWords > 0 ? (totalWordLength / totalWords).toFixed(1) : 0;
+    let displayLongest = Array.from(longestWord).length > 20 
+                         ? Array.from(longestWord).slice(0, 20).join('') + "..." 
+                         : (longestWord || '—');
 
-      /* Update detail rows */
-      if (details.charsNoSpace)  details.charsNoSpace.textContent  = formatNumber(result.charsNoSpace);
-      if (details.letters)       details.letters.textContent       = formatNumber(result.letters);
-      if (details.numbers)       details.numbers.textContent       = formatNumber(result.numbers);
-      if (details.special)       details.special.textContent       = formatNumber(result.special);
-      if (details.spaces)        details.spaces.textContent        = formatNumber(result.spaces);
-      if (details.lines)         details.lines.textContent         = formatNumber(result.lines);
-      if (details.avgWordLen)    details.avgWordLen.textContent     = result.avgWordLen;
-      if (details.readTime)      details.readTime.textContent      = result.readTime;
-      if (details.speakTime)     details.speakTime.textContent     = result.speakTime;
-      if (details.longestWord)   details.longestWord.textContent   = result.longestWord;
-    }
+    // --- UPDATE DOM UI ---
+    statWords.textContent = totalWords.toLocaleString();
+    statChars.textContent = totalChars.toLocaleString();
+    statSentences.textContent = totalSentences.toLocaleString();
+    statParagraphs.textContent = totalParagraphs.toLocaleString();
 
-    /* Listen for input */
-    textarea.addEventListener('input', update);
+    detCharsNoSpace.textContent = charsNoSpace.toLocaleString();
+    detLetters.textContent = totalLetters.toLocaleString();
+    detNumbers.textContent = totalNumbers.toLocaleString();
+    detSpecial.textContent = totalSpecial.toLocaleString();
+    detSpaces.textContent = totalSpaces.toLocaleString();
+    detLines.textContent = totalLines.toLocaleString();
+    
+    detAvgWord.textContent = avgWordLength;
+    detLongestWord.textContent = displayLongest;
+  }
 
-    /* Action buttons */
-    var clearBtn = document.getElementById('btn-clear');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', function() {
-        textarea.value = '';
-        update();
-        textarea.focus();
-      });
-    }
-
-    var copyBtn = document.getElementById('btn-copy');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', function() {
-        if (textarea.value.trim()) {
-          navigator.clipboard.writeText(textarea.value).then(function() {
-            var original = copyBtn.textContent;
-            copyBtn.textContent = '✓ Copied';
-            setTimeout(function() { copyBtn.textContent = original; }, 1500);
-          });
-        }
-      });
-    }
-
-    var pasteBtn = document.getElementById('btn-paste');
-    if (pasteBtn) {
-      pasteBtn.addEventListener('click', function() {
-        navigator.clipboard.readText().then(function(text) {
-          textarea.value = text;
-          update();
-        }).catch(function() {
-          /* Clipboard permission denied — ignore silently */
-        });
-      });
-    }
-
-    /* Initialize with empty state */
-    update();
+  // --- STRICT MANUAL TRIGGERS ---
+  
+  btnCalculate.addEventListener('click', () => {
+    const originalText = btnCalculate.textContent;
+    analyzeText();
+    btnCalculate.textContent = '✓ Done';
+    setTimeout(() => { btnCalculate.textContent = originalText; }, 1500);
   });
-})();
+
+  // Programs modifying .value destroy the browser's undo stack. This preserves it.
+  function updateWithUndo(el, text, append=false) {
+    el.focus();
+    if(append) {
+      el.selectionStart = el.value.length;
+      el.selectionEnd = el.value.length;
+    } else {
+      el.select();
+    }
+    
+    if (text === '' && !append) {
+      document.execCommand('delete');
+    } else {
+      if (!document.execCommand('insertText', false, text)) { 
+        if(append) el.value += text; else el.value = text; 
+      }
+    }
+  }
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    updateWithUndo(input, '');
+    analyzeText(); 
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function() {
+    if (input.value) {
+      navigator.clipboard.writeText(input.value);
+      this.textContent = '✓ Copied';
+      setTimeout(() => { this.textContent = '⧉ Copy'; }, 1500);
+    }
+  });
+
+  document.getElementById('btn-paste').addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      updateWithUndo(input, text, true);
+      btnCalculate.click();
+    } catch (err) {
+      alert("Unable to paste automatically. Please click in the box and use Ctrl+V / Cmd+V");
+    }
+  });
+
+  analyzeText(); 
+});

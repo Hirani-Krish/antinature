@@ -15,9 +15,6 @@
     .qr-wrapper { display: flex; flex-direction: column; align-items: center; padding: var(--space-md) var(--space-xl) var(--space-xl); }
     .qr-canvas { background: white; padding: 20px; border-radius: var(--radius-md); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
     .qr-canvas img { display: block; image-rendering: pixelated; }
-    .size-row { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-md); flex-wrap: wrap; justify-content: center; }
-    .size-row label { font-size: 0.82rem; color: var(--text-secondary); }
-    .size-row select { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--glass-bg); color: var(--text-primary); font-family: var(--font-family); font-size: 0.85rem; }
     .action-row { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); justify-content: center; flex-wrap: wrap; }
   </style>
 </head>
@@ -43,29 +40,38 @@
       </header>
 
       <div class="glass glass--static input-panel animate-in">
-        <div class="input-panel__header"><span class="input-panel__title">Data Input (Drag Me)</span></div>
+        <div class="input-panel__header"><span class="input-panel__title">Data Input</span></div>
         <textarea class="textarea" id="text-input" placeholder="Enter text or URL…" rows="3">https://antinature.com</textarea>
       </div>
 
       <div class="glass glass--static input-panel animate-in" style="margin-top: var(--space-md);">
-        <div class="input-panel__header"><span class="input-panel__title">Generated QR (Drag Me)</span></div>
+        <div class="input-panel__header"><span class="input-panel__title">Generated QR</span></div>
         <div class="qr-wrapper">
           <div class="qr-canvas" id="qr-canvas"></div>
-          <div class="size-row">
-            <label for="qr-size">Size:</label>
-            <select id="qr-size">
-              <option value="4">Small</option>
-              <option value="6" selected>Medium</option>
-              <option value="8">Large</option>
-              <option value="12">Extra Large</option>
-            </select>
-            <label for="qr-ecl">Error Correction:</label>
-            <select id="qr-ecl">
-              <option value="L">Low</option>
-              <option value="M" selected>Medium</option>
-              <option value="Q">High</option>
-              <option value="H">Highest</option>
-            </select>
+          <div style="display: flex; gap: var(--space-md); margin-top: var(--space-xl); flex-wrap: wrap; justify-content: center;">
+            <div class="ctrl-group" style="width: 140px; position: relative;" id="qr-size-wrapper">
+              <label class="ctrl-label">Size</label>
+              <div class="ctrl-input ctrl-select custom-select-btn" id="qr-size-btn" tabindex="0">Medium</div>
+              <div class="custom-select-menu" id="qr-size-menu">
+                <div class="custom-select-item" data-value="4">Small</div>
+                <div class="custom-select-item active" data-value="6">Medium</div>
+                <div class="custom-select-item" data-value="8">Large</div>
+                <div class="custom-select-item" data-value="12">Extra Large</div>
+              </div>
+              <input type="hidden" id="qr-size" value="6">
+            </div>
+
+            <div class="ctrl-group" style="width: 155px; position: relative;" id="qr-ecl-wrapper">
+              <label class="ctrl-label">Error Correction</label>
+              <div class="ctrl-input ctrl-select custom-select-btn" id="qr-ecl-btn" tabindex="0">Medium</div>
+              <div class="custom-select-menu" id="qr-ecl-menu">
+                <div class="custom-select-item" data-value="L">Low</div>
+                <div class="custom-select-item active" data-value="M">Medium</div>
+                <div class="custom-select-item" data-value="Q">High</div>
+                <div class="custom-select-item" data-value="H">Highest</div>
+              </div>
+              <input type="hidden" id="qr-ecl" value="M">
+            </div>
           </div>
           <div class="action-row">
             <button class="btn btn--accent" id="btn-download">↓ Download PNG</button>
@@ -189,9 +195,34 @@
       }
     }
 
+    // Custom Select Initialization
+    function initCustomSelect(wrapperId, btnId, menuId, inputId, onChange) {
+      var w = document.getElementById(wrapperId);
+      var b = document.getElementById(btnId);
+      var m = document.getElementById(menuId);
+      var i = document.getElementById(inputId);
+      
+      b.addEventListener('click', function(e) { e.stopPropagation(); m.classList.toggle('open'); b.classList.toggle('open'); });
+      m.querySelectorAll('.custom-select-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+          e.stopPropagation();
+          m.querySelectorAll('.custom-select-item').forEach(el => el.classList.remove('active'));
+          this.classList.add('active');
+          i.value = this.getAttribute('data-value');
+          b.textContent = this.textContent;
+          m.classList.remove('open'); b.classList.remove('open');
+          if(onChange) onChange();
+        });
+      });
+      document.addEventListener('click', function(e) {
+        if(!w.contains(e.target)) { m.classList.remove('open'); b.classList.remove('open'); }
+      });
+    }
+
+    initCustomSelect('qr-size-wrapper', 'qr-size-btn', 'qr-size-menu', 'qr-size', generate);
+    initCustomSelect('qr-ecl-wrapper', 'qr-ecl-btn', 'qr-ecl-menu', 'qr-ecl', generate);
+
     input.addEventListener('input', generate);
-    sizeSelect.addEventListener('change', generate);
-    eclSelect.addEventListener('change', generate);
 
     document.getElementById('btn-download').addEventListener('click', function(){
       var img = canvasEl.querySelector('img');

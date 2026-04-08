@@ -111,10 +111,10 @@
 
     // Tools dropdown
     html += '<li class="navbar__dropdown" id="tools-dropdown">';
-    html += '<button class="navbar__dropdown-toggle" aria-expanded="false" aria-haspopup="true">';
+    html += '<a href="#" class="navbar__dropdown-toggle" aria-expanded="false" aria-haspopup="true">';
     html += '<span>Tools</span>';
     html += '<span class="navbar__dropdown-chevron">▼</span>';
-    html += '</button>';
+    html += '</a>';
     html += buildDropdownMenu();
     html += '</li>';
 
@@ -151,6 +151,7 @@
 
     toggle.addEventListener('click', function (e) {
       e.stopPropagation();
+      e.preventDefault();
       var isOpen = dropdown.classList.contains('navbar__dropdown--open');
       dropdown.classList.toggle('navbar__dropdown--open');
       toggle.setAttribute('aria-expanded', !isOpen);
@@ -171,16 +172,47 @@
         toggle.setAttribute('aria-expanded', 'false');
       }
     });
+
+    // Close on click outside
+    document.addEventListener('click', function (e) {
+      if (dropdown.classList.contains('navbar__dropdown--open') && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('navbar__dropdown--open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
   }
 
   // Mobile menu toggle
   var menuBtn = document.getElementById('menu-toggle');
   var nav = document.getElementById('main-nav');
   if (menuBtn && nav) {
-    menuBtn.addEventListener('click', function () {
+    menuBtn.addEventListener('click', function (e) {
+      e.preventDefault();
       var isOpen = nav.classList.contains('navbar__nav--open');
       nav.classList.toggle('navbar__nav--open');
       menuBtn.setAttribute('aria-expanded', !isOpen);
+      menuBtn.innerHTML = !isOpen ? '✕' : '☰';
+      document.body.style.overflow = !isOpen ? 'hidden' : '';
+    });
+
+    // Close menu when a standard link is clicked (useful for mobile anchors)
+    nav.querySelectorAll('.navbar__link').forEach(function(link) {
+      link.addEventListener('click', function() {
+        nav.classList.remove('navbar__nav--open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.innerHTML = '☰';
+        document.body.style.overflow = '';
+      });
+    });
+
+    // Close menu when clicking completely outside the navbar
+    document.addEventListener('click', function (e) {
+      if (nav.classList.contains('navbar__nav--open') && !nav.contains(e.target) && !menuBtn.contains(e.target)) {
+        nav.classList.remove('navbar__nav--open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.innerHTML = '☰';
+        document.body.style.overflow = '';
+      }
     });
   }
 

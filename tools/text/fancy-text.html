@@ -9,13 +9,24 @@
   <script src="../../js/theme.js"></script>
   <script src="../../js/interactive.js"></script>
   <style>
-    body { position: relative; }
-    #bg-container { position: absolute; top: 0; left: 0; right: 0; z-index: -1; pointer-events: none; overflow: hidden; perspective: 1200px; transform-style: preserve-3d; }
+    /* 1. Safe Sticky Footer */
+    body { position: relative; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    main.page { flex: 1; }
+    
+    /* 2. Layering: 3D in back, UI in front */
+    .page, .footer { position: relative; z-index: 10; }
+    
+    /* Fixed 3D perspective lens perfectly matched to the viewport, bypassing huge page height distortions */
+    #bg-container { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; perspective: 1200px; perspective-origin: 50% 80%; transform-style: preserve-3d; }
+    
+    /* 3. Card Elements */
     .letter-card { position: absolute; width: 26px; height: 26px; transform-style: preserve-3d; will-change: transform; }
     .letter-face { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14px; font-weight: bold; color: var(--text-tertiary); background: var(--glass-bg); border: 1px solid var(--border-light); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .letter-face--back { transform: rotateY(180deg); }
     .static-card .letter-face { opacity: 0.8; }
-    .pyramid-stage { height: 280px; width: 100%; display: flex; align-items: flex-end; justify-content: center; color: var(--text-tertiary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; padding-bottom: 20px; pointer-events: none; }
+    
+    /* 4. Stage */
+    .pyramid-stage { height: 250px; margin-top: var(--space-xl); width: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.3; pointer-events: none; }
     
     .fancy-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-sm); margin-top: var(--space-md); }
     .fancy-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md); border-radius: var(--radius-md); background: var(--glass-bg); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); transition: all var(--transition-fast); }
@@ -42,49 +53,91 @@
       </header>
 
       <div class="glass glass--static input-panel animate-in">
-        <div class="input-panel__header"><span class="input-panel__title">Your Text (Drag Me)</span></div>
+        <div class="input-panel__header">
+          <span class="input-panel__title">Your Text</span>
+          <div class="input-panel__actions">
+            <button class="btn btn--small" id="btn-paste">⎘ Paste</button>
+            <button class="btn btn--small" id="btn-copy">⧉ Copy</button>
+            <button class="btn btn--small" id="btn-clear">✕ Clear</button>
+          </div>
+        </div>
         <textarea class="textarea" id="text-input" placeholder="Type your text here…" rows="3">AntiNature</textarea>
+        <div style="margin-top: var(--space-md); text-align: right;">
+          <button id="btn-generate" class="btn btn--accent" style="padding: 10px 24px; font-size: 0.9rem;">⟳ Generate Fancy Text</button>
+        </div>
       </div>
 
       <div class="glass glass--static input-panel animate-in">
-        <div class="input-panel__header"><span class="input-panel__title">Generated Styles (Drag Me)</span></div>
+        <div class="input-panel__header"><span class="input-panel__title">Generated Styles</span></div>
         <div class="fancy-grid" id="output-grid"></div>
       </div>
       
-      <div class="pyramid-stage">↓ The Ruins ↓</div>
+      <div class="pyramid-stage">
+        <!-- ↓ The Ruins ↓ -->
+      </div>
     </div>
   </main>
 
-  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
+  <footer id="main-footer" class="footer glass glass--static" style="border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
     <div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div>
   </footer>
 
   <script>
   (function(){
     var fonts = {
-      'Bold': {upper:'𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙',lower:'𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳'},
-      'Italic': {upper:'𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍',lower:'𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝒉𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧'},
-      'Bold Italic': {upper:'𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁',lower:'𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛'},
-      'Script': {upper:'𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵',lower:'𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏'},
-      'Bold Script': {upper:'𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩',lower:'𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃'},
-      'Fraktur': {upper:'𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ',lower:'𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷'},
-      'Double-Struck': {upper:'𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ',lower:'𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫'},
-      'Monospace': {upper:'𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉',lower:'𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣'},
-      'Circled': {upper:'Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ Ⓕ Ⓖ Ⓗ Ⓘ Ⓙ Ⓚ Ⓛ Ⓜ Ⓝ Ⓞ Ⓟ Ⓠ Ⓡ Ⓢ Ⓣ Ⓤ Ⓥ Ⓦ Ⓧ Ⓨ Ⓩ'.replace(/ /g,''),lower:'ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ'},
-      'Squared': {upper:'🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉',lower:'🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉'}
+      'Bold': {upper:'𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙', lower:'𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳', nums:'𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗'},
+      'Italic': {upper:'𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍', lower:'𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝒉𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧'},
+      'Bold Italic': {upper:'𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁', lower:'𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛'},
+      'Script (Cursive)': {upper:'𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵', lower:'𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏'},
+      'Bold Script': {upper:'𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩', lower:'𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃'},
+      'Gothic': {upper:'𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ', lower:'𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷'},
+      'Bold Gothic': {upper:'𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝖀𝖁𝖂𝖃𝖄𝖅', lower:'𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟'},
+      'Double-Struck': {upper:'𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ', lower:'𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫', nums:'𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡'},
+      'Monospace': {upper:'𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉', lower:'𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣', nums:'𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿'},
+      'Small Caps': {upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ', lower:'ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢ'},
+      'Vaporwave': {upper:'ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ', lower:'ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ', nums:'０１２３４５６７８９'},
+      'Circled': {upper:'ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ', lower:'ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ', nums:'⓪①②③④⑤⑥⑦⑧⑨'},
+      'Filled Circles': {upper:'🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩', lower:'🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩', nums:'⓿❶❷❸❹❺❻❼❽❾'},
+      'Squared': {upper:'🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉', lower:'🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉'},
+      'Filled Squares': {upper:'🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉', lower:'🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉'},
+      'Parentheses': {upper:'⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵', lower:'⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵'},
+      // Function-based dynamic styles
+      'Strikethrough': function(str) { return Array.from(str).map(function(c) { return c + '\u0336'; }).join(''); },
+      'Underline': function(str) { return Array.from(str).map(function(c) { return c + '\u0332'; }).join(''); },
+      'Slash': function(str) { return Array.from(str).map(function(c) { return c + '\u0337'; }).join(''); },
+      'Upside Down': function(str) { 
+        var n = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?.,;\'"';
+        var r = 'ɐqɔpǝɟƃɥıɾʞlɯuodbɹsʇnʌʍxʎz∀ꓭƆᗡƎℲ⅁HIſꓘ⅂WNOԀΌᴚSꓕ∩ΛMX⅄Z0ƖᄅƐㄣϛ9ㄥ86¡¿*\'؛,„';
+        return Array.from(str).reverse().map(function(c) {
+          var i = n.indexOf(c); return i >= 0 ? r.charAt(i) : c;
+        }).join('');
+      },
+      'Zalgo (Glitch)': function(str) {
+        return Array.from(str).map(function(c){
+          if(c === ' ') return c;
+          var res = c;
+          // Add 3 random diacritic combining marks
+          for(var i=0; i<3; i++) res += String.fromCharCode(768 + Math.floor(Math.random() * 112));
+          return res;
+        }).join('');
+      }
     };
 
     var AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     var az = 'abcdefghijklmnopqrstuvwxyz';
+    var numbers = '0123456789';
     var grid = document.getElementById('output-grid');
     var input = document.getElementById('text-input');
 
     function charMap(text, fontObj) {
-      var uc = Array.from(fontObj.upper);
-      var lc = Array.from(fontObj.lower);
+      if (typeof fontObj === 'function') return fontObj(text);
+      var uc = Array.from(fontObj.upper || '');
+      var lc = Array.from(fontObj.lower || '');
+      var nc = fontObj.nums ? Array.from(fontObj.nums) : [];
       return Array.from(text).map(function(ch){
         var ui = AZ.indexOf(ch); if(ui>=0 && ui<uc.length) return uc[ui];
         var li = az.indexOf(ch); if(li>=0 && li<lc.length) return lc[li];
+        var ni = numbers.indexOf(ch); if(ni>=0 && ni<nc.length) return nc[ni];
         return ch;
       }).join('');
     }
@@ -107,57 +160,130 @@
       });
     }
 
-    input.addEventListener('input', render);
+    // Utility Buttons
+    var btnPaste = document.getElementById('btn-paste');
+    var btnCopy = document.getElementById('btn-copy');
+    var btnClear = document.getElementById('btn-clear');
+
+    // Programs modifying .value destroy the browser's undo stack. This preserves it.
+    function updateWithUndo(el, text) {
+      el.focus();
+      el.select();
+      if (text === '') { document.execCommand('delete'); } 
+      else { if (!document.execCommand('insertText', false, text)) { el.value = text; } }
+    }
+
+    if(btnPaste) btnPaste.addEventListener('click', async () => {
+      try { const text = await navigator.clipboard.readText(); updateWithUndo(input, text); } catch(e) {}
+    });
+    if(btnCopy) btnCopy.addEventListener('click', () => {
+      navigator.clipboard.writeText(input.value);
+      var original = btnCopy.textContent; btnCopy.textContent = '✓ Copied';
+      setTimeout(() => btnCopy.textContent = original, 1200);
+    });
+    if(btnClear) btnClear.addEventListener('click', () => { updateWithUndo(input, ''); });
+
+    var btnGen = document.getElementById('btn-generate');
+    btnGen.addEventListener('click', function() {
+      var originalText = btnGen.textContent;
+      render();
+      btnGen.textContent = '✓ Generated';
+      setTimeout(function() { btnGen.textContent = originalText; }, 1500);
+    });
+    
+    // Initial render
     render();
   })();
 
-  // 3D Theme Engine
+  // 3D Card Engine Script
   const container = document.getElementById('bg-container');
+  const footerEl = document.getElementById('main-footer');
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  const cardSize = 30; let cols, pilePxHeights = [], fallingLeaves = [], floorY = 0;
-  function createCardElement(char, isStatic = false) { const card = document.createElement('div'); card.className = `letter-card ${isStatic ? 'static-card' : ''}`; const front = document.createElement('div'); front.className = 'letter-face'; front.textContent = char; const back = document.createElement('div'); back.className = 'letter-face letter-face--back'; back.textContent = char; card.appendChild(front); card.appendChild(back); return card; }
+  const cardSize = 30; 
+  let cols; let pilePxHeights = []; let fallingLeaves = []; let staticCardsData = []; let floorY = 0;
+
+  function createCardElement(char, isStatic = false) {
+    const card = document.createElement('div'); card.className = `letter-card ${isStatic ? 'static-card' : ''}`;
+    const front = document.createElement('div'); front.className = 'letter-face'; front.textContent = char;
+    const back = document.createElement('div'); back.className = 'letter-face letter-face--back'; back.textContent = char;
+    card.appendChild(front); card.appendChild(back); return card;
+  }
+
   function init3DEngine() {
-    container.innerHTML = '';
-    const width = document.body.scrollWidth, height = Math.max(document.body.scrollHeight, window.innerHeight); 
-    container.style.width = width + 'px'; container.style.height = height + 'px';
-    cols = Math.floor(width / cardSize); floorY = height - 100; 
-    let centerCol = Math.floor(cols / 2), maxPilePx = 150; pilePxHeights = new Array(cols).fill(0);
+    container.innerHTML = ''; staticCardsData = [];
+    const width = document.documentElement.clientWidth; 
+    cols = Math.floor(width / cardSize); 
+    floorY = footerEl.offsetTop - 10; 
+    let centerCol = Math.floor(cols / 2); let maxPilePx = 150; pilePxHeights = new Array(cols).fill(0);
+
     for (let c = 0; c < cols; c++) {
-      let dist = Math.abs(c - centerCol), heightForCol = maxPilePx - (dist * 12); 
+      let dist = Math.abs(c - centerCol); let heightForCol = maxPilePx - (dist * 12); 
       if (heightForCol < 20 && Math.random() > 0.4) heightForCol = 0; 
       if (heightForCol < 0) heightForCol = 0;
       pilePxHeights[c] = heightForCol;
       let numCardsInPile = Math.floor(heightForCol / 5);
+
       for (let i = 0; i < numCardsInPile; i++) {
-        let card = createCardElement(letters[Math.floor(Math.random() * letters.length)], true);
-        let x = (c * cardSize) + (Math.random() - 0.5) * 40, y = floorY - (i * 5) + (Math.random() - 0.5) * 10, z = (Math.random() - 0.5) * 80;
-        let rx = (60 + Math.random() * 25) * (Math.random() > 0.5 ? 1 : -1), ry = Math.random() * 360, rz = Math.random() * 360;
-        card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`; container.appendChild(card);
+        let char = letters[Math.floor(Math.random() * letters.length)];
+        let card = createCardElement(char, true);
+        let x = (c * cardSize) + (Math.random() - 0.5) * 40; let yOffset = (i * 5) - (Math.random() - 0.5) * 10; let z = (Math.random() - 0.5) * 80; 
+        let rx = (60 + Math.random() * 25) * (Math.random() > 0.5 ? 1 : -1); let ry = Math.random() * 360; let rz = Math.random() * 360; 
+        staticCardsData.push({ el: card, x, yOffset, z, rx, ry, rz });
+        card.style.transform = `translate3d(${x}px, ${floorY - yOffset}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+        container.appendChild(card);
       }
     }
     fallingLeaves = []; for (let i = 0; i < 15; i++) fallingLeaves.push(new FallingCard(true));
   }
+
   class FallingCard {
     constructor(initialLoad = false) { this.el = createCardElement('A', false); container.appendChild(this.el); this.reset(initialLoad); }
     reset(initialLoad = false) {
-      this.baseX = Math.random() * window.innerWidth;
-      this.y = initialLoad ? window.scrollY + (Math.random() * window.innerHeight) : window.scrollY - 100;
-      this.x = this.baseX; this.el.children[0].textContent = this.el.children[1].textContent = letters[Math.floor(Math.random() * letters.length)];
-      this.speedY = Math.random() * 0.8 + 0.4; this.swingAngle = Math.random() * Math.PI * 2; this.swingSpeed = Math.random() * 0.02 + 0.01; this.swingRadius = Math.random() * 40 + 20;
-      this.rotX = Math.random() * 360; this.rotY = Math.random() * 360; this.rotZ = Math.random() * 360; this.spinX = (Math.random() - 0.5) * 3; this.spinY = (Math.random() - 0.5) * 3; this.spinZ = (Math.random() - 0.5) * 1;
+      this.baseX = Math.random() * document.documentElement.clientWidth;
+      let spawnY = -100; // Fixed relative to viewport top
+      this.y = initialLoad ? (Math.random() * window.innerHeight) : spawnY;
+      this.x = this.baseX;
+      let newChar = letters[Math.floor(Math.random() * letters.length)];
+      this.el.children[0].textContent = newChar; this.el.children[1].textContent = newChar;
+      this.speedY = Math.random() * 0.8 + 0.4; 
+      this.swingAngle = Math.random() * Math.PI * 2; this.swingSpeed = Math.random() * 0.02 + 0.01; this.swingRadius = Math.random() * 40 + 20;
+      this.rotX = Math.random() * 360; this.rotY = Math.random() * 360; this.rotZ = Math.random() * 360;
+      this.spinX = (Math.random() - 0.5) * 3; this.spinY = (Math.random() - 0.5) * 3; this.spinZ = (Math.random() - 0.5) * 1;
     }
     update() {
       this.y += this.speedY; this.swingAngle += this.swingSpeed; this.x = this.baseX + Math.sin(this.swingAngle) * this.swingRadius;
       this.rotX += this.spinX; this.rotY += this.spinY; this.rotZ += this.spinZ;
-      let currentCol = Math.max(0, Math.min(cols - 1, Math.floor(this.baseX / cardSize)));
+      let currentCol = Math.floor(this.baseX / cardSize);
+      if (currentCol < 0) currentCol = 0; if (currentCol >= cols) currentCol = cols - 1;
       let targetY = floorY - pilePxHeights[currentCol];
       this.el.style.transform = `translate3d(${this.x}px, ${this.y}px, 0) rotateX(${this.rotX}deg) rotateY(${this.rotY}deg) rotateZ(${this.rotZ}deg)`;
       if (this.y > targetY) this.reset(false);
     }
   }
-  const resizeObserver = new ResizeObserver(() => { clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(init3DEngine, 200); });
+
+  let lastWidth = document.documentElement.clientWidth;
+  const resizeObserver = new ResizeObserver(() => {
+    const newWidth = document.documentElement.clientWidth;
+    if (Math.abs(newWidth - lastWidth) > 20) {
+      lastWidth = newWidth; clearTimeout(window.resizeTimer); window.resizeTimer = setTimeout(init3DEngine, 300);
+    }
+  });
   resizeObserver.observe(document.body);
-  function animateEngine() { fallingLeaves.forEach(leaf => leaf.update()); requestAnimationFrame(animateEngine); }
+
+  function animateEngine() {
+    // Dynamically calculate the floor line relative precisely to the fixed viewport lens
+    let currentFloorY = footerEl.getBoundingClientRect().top - 10;
+    
+    if (Math.abs(currentFloorY - floorY) > 0.5) {
+      floorY = currentFloorY;
+      staticCardsData.forEach(c => { 
+        // 3D perspective clipping completely vanishes because the lens is fixed to 100vh
+        c.el.style.transform = `translate3d(${c.x}px, ${floorY - c.yOffset}px, ${c.z}px) rotateX(${c.rx}deg) rotateY(${c.ry}deg) rotateZ(${c.rz}deg)`; 
+      });
+    }
+    fallingLeaves.forEach(leaf => leaf.update()); 
+    requestAnimationFrame(animateEngine);
+  }
   setTimeout(() => { init3DEngine(); animateEngine(); }, 50);
   </script>
 </body>

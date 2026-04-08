@@ -34,13 +34,14 @@
       </header>
 
       <div class="glass glass--static input-panel animate-in">
-        <div class="input-panel__header"><span class="input-panel__title">Input (Drag Me)</span></div>
+        <div class="input-panel__header"><span class="input-panel__title">Input</span></div>
         <textarea class="textarea" id="input" placeholder="Enter text or URL to encode/decode…" rows="4"></textarea>
         
         <div style="margin:var(--space-md) 0;display:flex;gap:var(--space-sm);flex-wrap:wrap;">
           <button class="btn btn--accent" id="btn-encode">Encode →</button>
           <button class="btn btn--accent" id="btn-decode">← Decode</button>
           <button class="btn" id="btn-encode-comp">Encode Component</button>
+          <button class="btn" id="btn-decode-comp">Decode Component</button>
           <button class="btn" id="btn-swap">⇅ Swap</button>
         </div>
         
@@ -62,13 +63,44 @@
   <!-- URL Encoder Logic -->
   <script>
   (function(){
-    var inp=document.getElementById('input'),out=document.getElementById('output');
+    var inp = document.getElementById('input');
+    var out = document.getElementById('output');
+
+    // Programs modifying .value destroy the browser's undo stack. This preserves it.
+    function updateWithUndo(el, text) {
+      el.focus();
+      el.select();
+      if (text === '') {
+        document.execCommand('delete');
+      } else {
+        if (!document.execCommand('insertText', false, text)) { el.value = text; }
+      }
+    }
+
     document.getElementById('btn-encode').addEventListener('click',function(){try{out.value=encodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
     document.getElementById('btn-decode').addEventListener('click',function(){try{out.value=decodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
     document.getElementById('btn-encode-comp').addEventListener('click',function(){try{out.value=encodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
-    document.getElementById('btn-swap').addEventListener('click',function(){var t=inp.value;inp.value=out.value;out.value=t;});
-    document.getElementById('btn-copy').addEventListener('click',function(){if(out.value){navigator.clipboard.writeText(out.value);this.textContent='✓ Copied';var b=this;setTimeout(function(){b.textContent='⧉ Copy';},1500);}});
-    document.getElementById('btn-clear').addEventListener('click',function(){inp.value='';out.value='';});
+    document.getElementById('btn-decode-comp').addEventListener('click',function(){try{out.value=decodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    
+    document.getElementById('btn-swap').addEventListener('click',function(){
+      var currentOut = out.value;
+      updateWithUndo(inp, currentOut);
+      out.value = '';
+    });
+    
+    document.getElementById('btn-copy').addEventListener('click',function(){
+      if(out.value){
+        navigator.clipboard.writeText(out.value);
+        this.textContent='✓ Copied';
+        var b=this;
+        setTimeout(function(){b.textContent='⧉ Copy';},1500);
+      }
+    });
+    
+    document.getElementById('btn-clear').addEventListener('click',function(){
+      updateWithUndo(inp, '');
+      out.value='';
+    });
   })();
   </script>
 
