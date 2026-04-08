@@ -185,6 +185,7 @@
 
     var btnGen = document.getElementById('btn-generate');
     btnGen.addEventListener('click', function() {
+      if (!input.value.trim()) { alert('Please enter some text to generate.'); return; }
       var originalText = btnGen.textContent;
       render();
       btnGen.textContent = '✓ Generated';

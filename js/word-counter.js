@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- STRICT MANUAL TRIGGERS ---
   
   btnCalculate.addEventListener('click', () => {
+    if (!input.value.trim()) { alert('Please enter some text to analyze.'); return; }
     const originalText = btnCalculate.textContent;
     analyzeText();
     btnCalculate.textContent = '✓ Done';

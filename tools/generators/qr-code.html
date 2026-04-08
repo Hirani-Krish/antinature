@@ -182,7 +182,8 @@
     var eclSelect = document.getElementById('qr-ecl');
 
     function generate() {
-      var text = input.value || 'https://antinature.com';
+      var text = input.value.trim();
+      if (!text) { alert("Please enter some text or a URL to generate a QR code."); return; }
       var ecl = eclSelect.value;
       var cellSize = parseInt(sizeSelect.value);
       try {

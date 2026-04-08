@@ -119,6 +119,7 @@
 
     document.querySelectorAll('.case-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if (!input.value.trim()) { alert('Please enter some text to convert.'); return; }
         if(activeBtn) activeBtn.classList.remove('case-btn--active');
         btn.classList.add('case-btn--active');
         activeBtn = btn;

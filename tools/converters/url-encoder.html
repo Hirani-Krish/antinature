@@ -77,10 +77,12 @@
       }
     }
 
-    document.getElementById('btn-encode').addEventListener('click',function(){try{out.value=encodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
-    document.getElementById('btn-decode').addEventListener('click',function(){try{out.value=decodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
-    document.getElementById('btn-encode-comp').addEventListener('click',function(){try{out.value=encodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
-    document.getElementById('btn-decode-comp').addEventListener('click',function(){try{out.value=decodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    function checkEmpty() { if (!inp.value.trim()) { alert('Please enter some text to process.'); return true; } return false; }
+    
+    document.getElementById('btn-encode').addEventListener('click',function(){if(checkEmpty()) return; try{out.value=encodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    document.getElementById('btn-decode').addEventListener('click',function(){if(checkEmpty()) return; try{out.value=decodeURI(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    document.getElementById('btn-encode-comp').addEventListener('click',function(){if(checkEmpty()) return; try{out.value=encodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
+    document.getElementById('btn-decode-comp').addEventListener('click',function(){if(checkEmpty()) return; try{out.value=decodeURIComponent(inp.value);}catch(e){out.value='Error: '+e.message;}});
     
     document.getElementById('btn-swap').addEventListener('click',function(){
       var currentOut = out.value;
