@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 11: Fluid Ink</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.9;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Fluid Ink Swirls</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 11: Ultra-dense ambient physics. Dragging your mouse stirs the smoke, creating gorgeous, swirling fluid dynamics and vortexes.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let particles = [];
+    let mouseX = -1000, mouseY = -1000;
+    let pmouseX = -1000, pmouseY = -1000;
+
+    window.addEventListener('mousemove', e => { 
+      pmouseX = mouseX; pmouseY = mouseY;
+      mouseX = e.clientX; mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      
+      particles = [];
+      const count = window.innerWidth < 768 ? 800 : 2500;
+      
+      for(let i=0; i<count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: 0,
+          vy: 0
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      // Heavy trailing effect for the "ink" or "smoke" feel
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = isDark ? 'rgba(10, 11, 16, 0.15)' : 'rgba(240, 240, 245, 0.15)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.globalCompositeOperation = isDark ? "lighter" : "multiply";
+      ctx.fillStyle = isDark ? 'rgba(138, 180, 248, 0.15)' : 'rgba(74, 111, 165, 0.1)';
+
+      let mouseDist = Math.sqrt((mouseX - pmouseX)**2 + (mouseY - pmouseY)**2);
+
+      particles.forEach(p => {
+        let dx = p.x - mouseX;
+        let dy = p.y - mouseY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+
+        // Vortex force from mouse movement
+        if(dist < 200 && mouseDist > 1) {
+          // Cross product logic for swirling vortex
+          let force = (200 - dist) / 200;
+          
+          let dragX = (mouseX - pmouseX) * force * 0.05;
+          let dragY = (mouseY - pmouseY) * force * 0.05;
+          
+          let swirlX = -dy * force * 0.02;
+          let swirlY =  dx * force * 0.02;
+
+          p.vx += dragX + swirlX;
+          p.vy += dragY + swirlY;
+        }
+
+        p.vx *= 0.96; // Fluid friction
+        p.vy *= 0.96;
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Soft screen wrap
+        if(p.x < -10) p.x = width+10; if(p.x > width+10) p.x = -10;
+        if(p.y < -10) p.y = height+10; if(p.y > height+10) p.y = -10;
+
+        ctx.fillRect(p.x, p.y, 2, 2);
+      });
+
+      pmouseX = mouseX; pmouseY = mouseY;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

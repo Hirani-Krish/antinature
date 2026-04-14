@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 3: Ambient Flow Field</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <!-- The Experimental Canvas -->
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 20vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; text-shadow: 0 4px 20px rgba(0,0,0,0.1);">Ambient Flow Field</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 3: Particles caught in a mathematical wind current. Move your cursor to disrupt the flow and push particles around.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let particles = [];
+    let time = 0;
+
+    let mouseX = -1000, mouseY = -1000;
+    window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      
+      particles = [];
+      const count = window.innerWidth < 768 ? 400 : 800;
+      
+      for(let i=0; i<count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: 0,
+          vy: 0,
+          baseSpeed: Math.random() * 0.5 + 0.2
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      // Create trailing effect by drawing semi-transparent background
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      ctx.fillStyle = isDark ? 'rgba(10, 11, 16, 0.1)' : 'rgba(240, 240, 245, 0.1)';
+      ctx.fillRect(0, 0, width, height);
+
+      time += 0.005;
+      
+      ctx.fillStyle = isDark ? 'rgba(138, 180, 248, 0.6)' : 'rgba(74, 111, 165, 0.6)';
+
+      particles.forEach(p => {
+        // Calculate math-based flow direction angle based on Position + Time
+        let angle = Math.sin(p.x * 0.003 + time) + Math.cos(p.y * 0.004 + time) * Math.PI * 2;
+        
+        // Wind vectors
+        let dx = Math.cos(angle);
+        let dy = Math.sin(angle);
+        
+        // Add wind to velocity
+        p.vx += dx * 0.05;
+        p.vy += dy * 0.05;
+        
+        // Mouse repelling force
+        let mx = p.x - mouseX;
+        let my = p.y - mouseY;
+        let dist = Math.sqrt(mx * mx + my * my);
+        if (dist < 150) {
+          let force = (150 - dist) / 150;
+          p.vx += (mx / dist) * force * 2;
+          p.vy += (my / dist) * force * 2;
+        }
+
+        // Apply friction/decay to cap speed
+        p.vx *= 0.95;
+        p.vy *= 0.95;
+
+        p.x += p.vx * p.baseSpeed;
+        p.y += p.vy * p.baseSpeed;
+
+        // Wrap around screen
+        if (p.x < 0) p.x = width;  if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height; if (p.y > height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

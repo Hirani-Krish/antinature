@@ -621,6 +621,90 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .ctrl-checkbox-wrapper:hover .ctrl-checkbox-text { color: var(--text-primary); }
 .ctrl-checkbox-wrapper:hover .ctrl-checkbox-box { border-color: rgba(255,255,255,0.3); }
 
+/* Premium Date Input Enhancement */
+.date-input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 340px;
+}
+
+.date-input-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  background: linear-gradient(135deg, var(--accent) 0%, rgba(107,143,196,0.3) 40%, transparent 60%, rgba(255,255,255,0.08) 100%);
+  border-radius: calc(var(--radius-md) + 2px);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+}
+
+.date-input-wrapper:hover::before {
+  opacity: 0.4;
+}
+
+.date-input-wrapper:focus-within::before {
+  opacity: 0.7;
+}
+
+.premium-date-input {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: var(--font-family);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  color-scheme: light;
+  background: var(--glass-bg);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: all var(--transition-base);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), var(--glass-shadow);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+[data-theme="dark"] .premium-date-input {
+  color-scheme: dark;
+}
+
+.premium-date-input:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-border);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), var(--glass-shadow-lg);
+  transform: translateY(-1px);
+}
+
+.premium-date-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 20px rgba(107,143,196,0.12);
+  transform: translateY(0);
+}
+
+.premium-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .premium-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(0.1) hue-rotate(180deg);
+}
+
+.premium-date-input:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  background-color: var(--accent-soft);
+}
+
 /* ============================================
    PAGE LAYOUT
    ============================================ */

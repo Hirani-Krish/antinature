@@ -65,6 +65,31 @@
         { name: 'Age Calculator', desc: 'Exact age with birthday countdown', href: base + 'tools/utility/age-calculator.html' },
         { name: 'Online Notepad', desc: 'Auto-saves to your browser privately', href: base + 'tools/utility/notepad.html' }
       ]
+    },
+    {
+      id: 'labs',
+      title: 'Labs / Prototypes',
+      tools: [
+        { name: 'Effect 1', desc: 'Liquid Metaballs', href: base + 'effect-1.html' },
+        { name: 'Effect 2', desc: 'Liquid Metaballs', href: base + 'effect-2.html' },
+        { name: 'Effect 3', desc: 'Liquid Metaballs', href: base + 'effect-3.html' },
+        { name: 'Effect 4', desc: 'Liquid Metaballs', href: base + 'effect-4.html' },
+        { name: 'Effect 5', desc: 'Liquid Metaballs', href: base + 'effect-5.html' },
+        { name: 'Effect 6', desc: 'Liquid Metaballs', href: base + 'effect-6.html' },
+        { name: 'Effect 7', desc: 'Liquid Metaballs', href: base + 'effect-7.html' },
+        { name: 'Effect 8', desc: 'Kinetic Typography', href: base + 'effect-8.html' },
+        { name: 'Effect 9', desc: 'Liquid Metaballs', href: base + 'effect-9.html' },
+        { name: 'Effect 10', desc: 'Liquid Metaballs', href: base + 'effect-10.html' },
+        { name: 'Effect 11', desc: 'Liquid Metaballs', href: base + 'effect-11.html' },
+        { name: 'Effect 12', desc: 'Liquid Metaballs', href: base + 'effect-12.html' },
+        { name: 'Effect 13', desc: 'Prism Optics (Ultra)', href: base + 'effect-13.html' },
+        { name: 'Effect 14', desc: 'Liquid Metaballs', href: base + 'effect-14.html' },
+        { name: 'Effect 15', desc: 'Fiber Optics', href: base + 'effect-15.html' },
+        { name: 'Effect 16', desc: 'Kinetic Bauhaus', href: base + 'effect-16.html' },
+        { name: 'Effect 17', desc: 'Harmonic Pendulums', href: base + 'effect-17.html' },
+        { name: 'Effect 18', desc: 'Optical Moiré', href: base + 'effect-18.html' },
+        { name: 'Effect 19', desc: 'Ferrofluid Sand', href: base + 'effect-19.html' },
+      ]
     }
   ];
 

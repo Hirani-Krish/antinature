@@ -7,15 +7,53 @@
   <meta name="description" content="Calculate your exact age in years, months, days, hours, minutes. Also shows next birthday countdown. Free, no login.">
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/theme.js"></script>
-  <script src="../../js/interactive.js"></script> <!-- Draggable/3D Hover script -->
+  <script src="../../js/interactive.js"></script>
   <style>
-    body { position: relative; }
+    /* ========================================================
+       FIX: Layering & Anti-Void Zoom Protection
+       ======================================================== */
+    html { height: 100%; background-color: var(--bg-page); }
+    body { position: relative; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; margin: 0; }
+    
+    /* Forces content to stretch, pushing footer down */
+    main.page { flex: 1; position: relative; z-index: 10; display: flex; flex-direction: column; }
+    .container { flex-grow: 1; display: flex; flex-direction: column; }
+    #main-footer { margin-top: auto; flex-shrink: 0; position: relative; z-index: 10; }
+    .navbar { position: relative; z-index: 10; }
+
+    /* Canvas on z-index 0 sits safely between background and UI */
+    #bg-canvas { position: absolute; top: 0; left: 0; width: 100vw; height: 100%; z-index: 0; pointer-events: none; }
+
+    /* ========================================================
+       UI TWEAKS
+       ======================================================== */
+    #result.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); }
+    @media (max-width: 600px) { #result.stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .date-input-wrapper { position: relative; width: 100%; max-width: 320px; margin: var(--space-md) auto var(--space-sm); }
+    .premium-date-input { width: 100%; padding: 16px 20px 16px 48px; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 600; color: var(--text-primary); background: var(--glass-bg); border: 2px solid var(--glass-border-edge); border-radius: var(--radius-md); outline: none; transition: all var(--transition-fast); cursor: pointer; box-shadow: var(--glass-shadow); letter-spacing: 0.05em; }
+    .premium-date-input:hover, .premium-date-input:focus, .date-input-wrapper.active .premium-date-input { background: var(--glass-bg-hover); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft), var(--glass-shadow-lg); transform: translateY(-2px); }
+    .date-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; pointer-events: none; color: var(--accent); transition: transform var(--transition-fast); }
+    .date-input-wrapper.active .date-icon { transform: translateY(-50%) scale(1.1); }
+
+    .glass-calendar { position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%) translateY(10px); width: 300px; background: var(--dropdown-bg); border: 1px solid var(--dropdown-border); border-radius: var(--radius-md); box-shadow: var(--dropdown-shadow); padding: var(--space-md); z-index: 100; opacity: 0; visibility: hidden; pointer-events: none; transition: all var(--transition-base); display: flex; flex-direction: column; gap: var(--space-sm); }
+    .date-input-wrapper.active .glass-calendar { opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .calendar-header { display: flex; gap: var(--space-sm); margin-bottom: var(--space-xs); }
+    .calendar-header select { flex: 1; padding: 6px 8px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-family: var(--font-family); font-weight: 600; font-size: 0.9rem; outline: none; cursor: pointer; }
+    .calendar-header select:focus { border-color: var(--accent); }
+    .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.75rem; color: var(--text-tertiary); font-weight: 700; margin-bottom: 4px; }
+    .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day { padding: 8px 0; text-align: center; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; color: var(--text-primary); cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+    .cal-day:hover { background: var(--accent-soft); border-color: var(--accent-border); }
+    .cal-day.selected { background: var(--accent); color: white; font-weight: bold; box-shadow: 0 4px 12px rgba(74, 111, 165, 0.4); }
+    .cal-day.today { color: var(--accent); font-weight: 800; text-decoration: underline; }
+    .cal-day.empty { visibility: hidden; pointer-events: none; }
   </style>
 </head>
 <body>
 
-  <!-- Floating Time Particles Canvas -->
-  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100%; z-index: -1; pointer-events: none;"></canvas>
+  <!-- Harmonic Pendulums Canvas on z-index 0 -->
+  <canvas id="bg-canvas"></canvas>
 
   <nav class="navbar"></nav>
   <script src="../../js/navbar.js"></script>
@@ -32,13 +70,35 @@
         <p class="page-header__subtitle">Find your exact age and days until your next birthday.</p>
       </header>
 
-      <!-- Input Panel (Draggable) -->
-      <div class="glass glass--static input-panel animate-in">
-        <div class="input-panel__header"><span class="input-panel__title">Date of Birth</span></div>
-        <input type="date" id="dob" style="padding:12px 16px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:var(--glass-bg);color:var(--text-primary);font-family:var(--font-family);font-size:1rem;outline:none;width:100%;max-width:300px; cursor: pointer;">
+      <!-- Premium Input Panel -->
+      <div class="glass glass--static input-panel animate-in" style="text-align: center;">
+        <span class="input-panel__title" style="display:block; margin-bottom: 8px;">Date of Birth</span>
+        
+        <div class="date-input-wrapper" id="date-wrapper">
+          <svg class="date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          
+          <input type="text" id="fake-dob" class="premium-date-input" readonly placeholder="DD-MM-YYYY">
+          <input type="date" id="dob" style="display: none;">
+
+          <div class="glass-calendar" id="glass-calendar">
+            <div class="calendar-header">
+              <select id="cal-month-select"></select>
+              <select id="cal-year-select"></select>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div class="calendar-days" id="cal-days"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Stats Grid (Gets 3D Hover effect from interactive.js automatically) -->
+      <!-- Stats Grid -->
       <div class="stats-grid animate-in" id="result" style="display:none;">
         <div class="glass stat-card"><div class="stat-card__value" id="s-years">0</div><div class="stat-card__label">Years</div></div>
         <div class="glass stat-card"><div class="stat-card__value" id="s-months">0</div><div class="stat-card__label">Months</div></div>
@@ -46,9 +106,9 @@
         <div class="glass stat-card"><div class="stat-card__value" id="s-next">0</div><div class="stat-card__label">Next Birthday</div></div>
       </div>
 
-      <!-- Details Panel (Draggable) -->
-      <div class="glass glass--static input-panel animate-in" id="details" style="display:none;">
-        <div class="input-panel__header"><span class="input-panel__title">More Details</span></div>
+      <!-- Details Panel -->
+      <div class="glass glass--static input-panel animate-in" id="details" style="display:none; margin-top: var(--space-lg);">
+        <div class="input-panel__header"><span class="input-panel__title">Life Milestones</span></div>
         <div class="details-grid">
           <div class="detail-row"><span class="detail-row__label">Total Months</span><span class="detail-row__value" id="d-months">0</span></div>
           <div class="detail-row"><span class="detail-row__label">Total Weeks</span><span class="detail-row__value" id="d-weeks">0</span></div>
@@ -63,11 +123,103 @@
     </div>
   </main>
 
-  <footer class="footer glass glass--static" style="position: relative; z-index: 10; border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
+  <footer id="main-footer" class="footer glass glass--static" style="border-radius: 0; border-left: none; border-right: none; border-bottom: none;">
     <div class="container"><p>© 2026 <a href="../../index.html">AntiNature</a> — Free online tools. No login. No tracking. No nonsense.</p></div>
   </footer>
 
-  <!-- Age Calculator Logic -->
+  <!-- Custom Calendar UI Logic -->
+  <script>
+  (function(){
+    const wrapper = document.getElementById('date-wrapper');
+    const fakeInput = document.getElementById('fake-dob');
+    const realInput = document.getElementById('dob');
+    const calDays = document.getElementById('cal-days');
+    const monthSelect = document.getElementById('cal-month-select');
+    const yearSelect = document.getElementById('cal-year-select');
+
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const today = new Date();
+    
+    let currentViewDate = new Date();
+    let selectedDate = null;
+
+    months.forEach((m, index) => {
+      let option = document.createElement('option');
+      option.value = index; option.textContent = m;
+      monthSelect.appendChild(option);
+    });
+
+    const currentYear = today.getFullYear();
+    for (let y = currentYear; y >= currentYear - 120; y--) {
+      let option = document.createElement('option');
+      option.value = y; option.textContent = y;
+      yearSelect.appendChild(option);
+    }
+
+    function renderCalendar() {
+      const year = currentViewDate.getFullYear();
+      const month = currentViewDate.getMonth();
+      monthSelect.value = month;
+      yearSelect.value = year;
+      calDays.innerHTML = '';
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'cal-day empty';
+        calDays.appendChild(emptyDiv);
+      }
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'cal-day';
+        dayDiv.textContent = i;
+        
+        if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+          dayDiv.classList.add('today');
+        }
+        if (selectedDate && year === selectedDate.getFullYear() && month === selectedDate.getMonth() && i === selectedDate.getDate()) {
+          dayDiv.classList.add('selected');
+        }
+
+        dayDiv.addEventListener('click', () => {
+          selectedDate = new Date(year, month, i);
+          const m = String(month + 1).padStart(2, '0');
+          const d = String(i).padStart(2, '0');
+          realInput.value = `${year}-${m}-${d}`;
+          fakeInput.value = `${d}-${m}-${year}`;
+          wrapper.classList.remove('active');
+          realInput.dispatchEvent(new Event('input'));
+          renderCalendar(); 
+        });
+        calDays.appendChild(dayDiv);
+      }
+    }
+
+    fakeInput.addEventListener('click', () => {
+      wrapper.classList.toggle('active');
+      if (!selectedDate && !fakeInput.value) {
+        currentViewDate.setFullYear(today.getFullYear() - 30);
+      } else if (selectedDate) {
+        currentViewDate = new Date(selectedDate);
+      }
+      renderCalendar();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) wrapper.classList.remove('active');
+    });
+
+    monthSelect.addEventListener('change', (e) => { currentViewDate.setMonth(parseInt(e.target.value)); renderCalendar(); });
+    yearSelect.addEventListener('change', (e) => { currentViewDate.setFullYear(parseInt(e.target.value)); renderCalendar(); });
+
+    renderCalendar();
+  })();
+  </script>
+
+  <!-- Age Calculator Output Logic -->
   <script>
   (function(){
     var dob=document.getElementById('dob');
@@ -113,117 +265,109 @@
       
       document.getElementById('result').style.display='';
       document.getElementById('details').style.display='';
-
-      // Trigger a resize event to adjust canvas height for the new panels
-      window.dispatchEvent(new Event('resize'));
     });
   })();
   </script>
 
-  <!-- Interactive Floating Time Particles Logic -->
+  <!-- Harmonic Pendulums Canvas Logic -->
   <script>
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
     
-    let timeParticles = [];
-    let mouseX = -1000, mouseY = -1000;
+    let width, height;
+    let pendulums = [];
+    let time = 0;
 
-    const timeWords = ["Years", "Months", "Weeks", "Days", "Hours", "Minutes", "Seconds", "Time", "Past", "Future"];
+    let targetX = 0;
+    let mx = 0;
 
-    window.addEventListener('mousemove', (e) => { 
-      mouseX = e.pageX; 
-      mouseY = e.pageY; 
+    window.addEventListener('mousemove', e => { 
+      targetX = (e.clientX - window.innerWidth/2) * 0.1; 
     });
 
     function initCanvas() {
-      canvas.width = document.body.scrollWidth;
-      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+      width = canvas.width = document.documentElement.clientWidth;
+      height = canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
       
-      timeParticles = [];
-      const density = window.innerWidth < 768 ? 20 : 40; 
+      pendulums = [];
+      const count = width < 768 ? 12 : 24;
+      const spacing = width < 768 ? 40 : 50;
       
-      for (let i = 0; i < density; i++) {
-        timeParticles.push(new TimeParticle());
+      let startX = (width - ((count - 1) * spacing)) / 2;
+      
+      for(let i = 0; i < count; i++) {
+        let oscillations = 20 - i * 0.5; 
+        pendulums.push({
+          ix: startX + i * spacing,
+          length: window.innerHeight * 0.3 + (i * 15), 
+          frequency: oscillations / 60,
+          phase: 0
+        });
       }
     }
-
-    class TimeParticle {
-      constructor() {
-        this.reset(true);
-      }
-
-      reset(randomY = false) {
-        this.word = timeWords[Math.floor(Math.random() * timeWords.length)];
-        this.x = Math.random() * canvas.width;
-        // Start from bottom and float up
-        this.y = randomY ? Math.random() * canvas.height : canvas.height + 50; 
-        
-        // Base upward speed
-        this.baseSpeed = Math.random() * 0.5 + 0.2; 
-        this.speed = this.baseSpeed;
-        
-        this.fontSize = Math.random() * 8 + 10; // 10px to 18px
-      }
-
-      update() {
-        let textWidth = ctx.measureText(this.word).width;
-        let centerX = this.x + (textWidth / 2);
-        
-        let dx = mouseX - centerX;
-        let dy = mouseY - this.y;
-        let dist = Math.sqrt(dx * dx + dy * dy);
-
-        let isHovered = dist < 150;
-
-        // Interaction: Time Warp (Speed up and get bigger near mouse)
-        if (isHovered) {
-          let force = (150 - dist) / 150;
-          this.speed = this.baseSpeed + (force * 3); // Fly upwards faster
-        } else {
-          // Slowly return to base speed
-          this.speed += (this.baseSpeed - this.speed) * 0.1;
-        }
-
-        this.y -= this.speed;
-
-        // Reset if it floats off top
-        if (this.y < -50) {
-          this.reset(false);
-        }
-
-        this.draw(isHovered, dist);
-      }
-
-      draw(isHovered, dist) {
-        let themeColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#8b909e';
-        let accentColor = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#4a6fa5';
-
-        if (isHovered) {
-          let intensity = (150 - dist) / 150;
-          ctx.font = `bold ${this.fontSize + (intensity * 4)}px 'Inter', sans-serif`;
-          ctx.fillStyle = accentColor;
-          ctx.globalAlpha = 0.1 + (intensity * 0.3); 
-        } else {
-          ctx.font = `${this.fontSize}px 'Inter', sans-serif`;
-          ctx.fillStyle = themeColor;
-          ctx.globalAlpha = 0.05; 
-        }
-
-        ctx.fillText(this.word, this.x, this.y);
-      }
-    }
-
-    window.addEventListener('resize', initCanvas);
+    
+    let lastWidth = document.documentElement.clientWidth;
     const resizeObserver = new ResizeObserver(() => {
-      canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+      const newWidth = document.documentElement.clientWidth;
+      if (Math.abs(newWidth - lastWidth) > 10 || canvas.height !== Math.max(document.body.scrollHeight, window.innerHeight)) {
+        lastWidth = newWidth;
+        initCanvas();
+      }
     });
     resizeObserver.observe(document.body);
 
     initCanvas();
 
     function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      timeParticles.forEach(p => p.update());
+      ctx.clearRect(0, 0, width, height);
+      
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      let themeColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#8b909e';
+      
+      mx += (targetX - mx) * 0.05;
+      time += 0.015;
+
+      ctx.beginPath();
+      ctx.strokeStyle = themeColor;
+      ctx.globalAlpha = 0.2;
+      ctx.lineWidth = 2;
+      ctx.moveTo(0, 0); 
+      ctx.lineTo(width, 0);
+      ctx.stroke();
+
+      pendulums.forEach((p, idx) => {
+        let angle = Math.sin(time * p.frequency * Math.PI) * (Math.PI / 4); 
+        
+        let ox = p.ix + mx * (idx * 0.2); 
+        let oy = 0; 
+        
+        let bx = ox + Math.sin(angle) * p.length;
+        let by = oy + Math.cos(angle) * p.length;
+
+        // Draw String
+        ctx.beginPath();
+        ctx.strokeStyle = themeColor;
+        ctx.globalAlpha = 0.15;
+        ctx.lineWidth = 1;
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(bx, by);
+        ctx.stroke();
+
+        // Draw Bob - MUCH HIGHER OPACITY TO ENSURE VISIBILITY
+        ctx.beginPath();
+        ctx.fillStyle = themeColor;
+        ctx.globalAlpha = isDark ? 0.7 : 0.4;
+        ctx.arc(bx, by, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Soft Glow - MUCH HIGHER OPACITY TO ENSURE VISIBILITY
+        ctx.beginPath();
+        ctx.globalAlpha = isDark ? 0.3 : 0.15;
+        ctx.arc(bx, by, 14, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.globalAlpha = 1.0;
       requestAnimationFrame(animate);
     }
     animate();

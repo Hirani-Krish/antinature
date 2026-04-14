@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 19: Ferrofluid</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Magnetic Ferrofluid</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 19: Interactive metallic sand that rests heavily at the bottom of the screen. Your cursor acts as a neodymium magnet pulling it upwards.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let sands = [];
+
+    let mouseX = -1000, mouseY = -1000;
+
+    window.addEventListener('mousemove', e => { 
+      mouseX = e.clientX; mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      sands = [];
+      
+      const count = window.innerWidth < 768 ? 2000 : 4000;
+      
+      for(let i=0; i<count; i++) {
+        let rx = Math.random() * width;
+        let ry = height + Math.random() * 50; // Hidden slightly below screen
+        sands.push({
+          x: rx, y: ry,
+          vx: 0, vy: 0,
+          ox: rx, oy: ry // Natural resting position
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)';
+
+      sands.forEach(p => {
+        // Gravity / Spring to origin
+        p.vy += (p.oy - p.y) * 0.05; // Pull down to floor
+        p.vx += (p.ox - p.x) * 0.05; // Anchor to initial X
+
+        // Magnetic Pull from Cursor
+        let dx = p.x - mouseX;
+        let dy = p.y - mouseY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+
+        // Magnetic field range
+        if (dist < 250 && mouseY < height - 20) {
+          let pull = (250 - dist) / 250;
+          // Pull strongly UP towards mouse
+          p.vy -= (dy / dist) * pull * 4;
+          // Pinch horizontally inwards towards mouse
+          p.vx -= (dx / dist) * pull * 1.5; 
+        }
+
+        // Friction and bounds
+        p.vx *= 0.8;
+        p.vy *= 0.8;
+        
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        ctx.fillRect(p.x, p.y, 2, 2); // Tiny metallic shards
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

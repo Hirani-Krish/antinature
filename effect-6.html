@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 6: Liquid Metaballs</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+  <style>
+    /* Specialized metaball container filter */
+    .metaball-container {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: -1; pointer-events: none;
+      /* The magic CSS combo for metaballs: heavy blur + extreme contrast */
+      background: var(--bg-page);
+      filter: blur(25px) contrast(50);
+      overflow: hidden;
+    }
+    canvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="metaball-container">
+    <canvas id="bg-canvas"></canvas>
+  </div>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Liquid Glass Blobs</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 6: Heavy metaball liquid physics. Blobs seamlessly merge together organically, and dragging your mouse aggressively pushes and splits the liquid apart.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let blobs = [];
+
+    let mouseX = -1000, mouseY = -1000;
+    let mouseVX = 0, mouseVY = 0;
+    
+    window.addEventListener('mousemove', e => { 
+      mouseVX = e.clientX - mouseX;
+      mouseVY = e.clientY - mouseY;
+      mouseX = e.clientX; 
+      mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      blobs = [];
+      
+      const isMobile = window.innerWidth < 768;
+      const count = isMobile ? 3 : 5;
+      
+      for(let i=0; i<count; i++) {
+        blobs.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          r: Math.random() * 100 + (isMobile ? 80 : 150)
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      // Background must NOT be transparent for contrast() filter to work properly.
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
+      
+      ctx.fillStyle = '#ffffff';
+
+      blobs.forEach(b => {
+        // Natural movement
+        b.x += b.vx;
+        b.y += b.vy;
+
+        // Bounce off walls smoothly
+        if(b.x < b.r) { b.vx += 0.2; }
+        if(b.x > width - b.r) { b.vx -= 0.2; }
+        if(b.y < b.r) { b.vy += 0.2; }
+        if(b.y > height - b.r) { b.vy -= 0.2; }
+
+        // Mouse Disruption
+        let dx = b.x - mouseX;
+        let dy = b.y - mouseY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        let interactRadius = b.r + 150;
+        if(dist < interactRadius) {
+          let push = (interactRadius - dist) / interactRadius;
+          b.vx += (dx / dist) * push * 2;
+          b.vy += (dy / dist) * push * 2;
+        }
+
+        // Apply friction to max speed
+        b.vx *= 0.98;
+        b.vy *= 0.98;
+
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Render the mouse as a negative space blob to "cut" the liquid
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, 80, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

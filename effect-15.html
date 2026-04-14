@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 15: Fiber Optics</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.9;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Fiber Optic Trails</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 15: Razor-thin, glowing lines sweeping across the screen, mimicking long-exposure data streams. Dragging your mouse heavily bends the fiber streams.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let paths = [];
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    window.addEventListener('mousemove', e => { 
+      mouseX = e.clientX; mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      paths = [];
+      
+      const count = window.innerWidth < 768 ? 20 : 40;
+      for(let i=0; i<count; i++) {
+        paths.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: Math.random() * 2 + 1, // Sweep right
+          vy: (Math.random() - 0.5) * 1,
+          history: [], // For trailing
+          hueOffsets: Math.random() * 100, // Slight color variance
+          speed: Math.random() * 2 + 2
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      // Heavy fade for long exposure trails
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = isDark ? 'rgba(10, 11, 16, 0.05)' : 'rgba(240, 240, 245, 0.05)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.globalCompositeOperation = isDark ? "screen" : "multiply";
+
+      let baseR = isDark ? 138 : 74;
+      let baseG = isDark ? 180 : 111;
+      let baseB = isDark ? 248 : 165;
+
+      paths.forEach(p => {
+        // Curve naturally
+        p.vy += Math.sin(p.x * 0.01) * 0.02;
+        
+        // Mouse gravity (bends the light)
+        let dx = mouseX - p.x;
+        let dy = mouseY - p.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 300) {
+          let force = (300 - dist) / 300;
+          p.vy += (dy / dist) * force * 0.4;
+        }
+
+        p.vy *= 0.98; // Friction on Y
+        
+        p.x += p.vx * p.speed;
+        p.y += p.vy * p.speed;
+
+        // Wrap
+        if (p.x > width + 50) {
+          p.x = -50; p.y = Math.random() * height; p.history = [];
+        }
+
+        p.history.push({x: p.x, y: p.y});
+        if(p.history.length > 50) p.history.shift(); // Trail length
+
+        if (p.history.length > 1) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(${baseR}, ${baseG}, ${baseB}, 0.5)`;
+          ctx.lineWidth = 1;
+          
+          if(isDark) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = `rgb(${baseR}, ${baseG}, ${baseB})`;
+          }
+
+          ctx.moveTo(p.history[0].x, p.history[0].y);
+          for(let i=1; i<p.history.length; i++) {
+            ctx.lineTo(p.history[i].x, p.history[i].y);
+          }
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

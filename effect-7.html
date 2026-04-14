@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 7: Gravity Grid</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Gravity Grid</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 7: A rigid structural grid that succumbs to extreme gravity physics when your cursor moves near it.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let grid = [];
+    const spacing = 35; // Size of grid cells
+
+    let mouseX = -1000, mouseY = -1000;
+    window.addEventListener('mousemove', e => { 
+      mouseX = e.clientX; 
+      mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      grid = [];
+      
+      let rows = Math.ceil(height / spacing) + 2;
+      let cols = Math.ceil(width / spacing) + 2;
+      
+      for(let y=0; y<rows; y++) {
+        for(let x=0; x<cols; x++) {
+          grid.push({
+            ox: x * spacing, // Origin X
+            oy: y * spacing, // Origin Y
+            x: x * spacing,  // Current X
+            y: y * spacing,  // Current Y
+            vx: 0,
+            vy: 0
+          });
+        }
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let themeColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#aaa';
+      ctx.fillStyle = themeColor;
+
+      grid.forEach(p => {
+        // 1. Pull towards origin (Elasticity)
+        let ex = p.ox - p.x;
+        let ey = p.oy - p.y;
+        p.vx += ex * 0.05; // Spring strength
+        p.vy += ey * 0.05;
+
+        // 2. Black hole gravity from mouse
+        let dx = p.x - mouseX;
+        let dy = p.y - mouseY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist < 250) {
+          // If very close, repel to prevent overlapping exactly on mouse. Otherwise attract.
+          // Wait, gravity pulls IN. Let's pull IN hard.
+          let pull = (250 - dist) / 250;
+          p.vx -= (dx / dist) * pull * 4; 
+          p.vy -= (dy / dist) * pull * 4;
+        }
+
+        // Friction
+        p.vx *= 0.8;
+        p.vy *= 0.8;
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Render point as a tiny '+' or dot
+        ctx.fillRect(p.x - 1, p.y - 1, 3, 3);
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

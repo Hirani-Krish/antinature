@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 18: Moiré Illusions</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body style="overflow: hidden;">
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; background: var(--bg-page); padding: 0 20px; display: inline-block;">Optical Moiré</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto; background: var(--bg-page); padding: 5px 20px; line-height: 1.5;">
+        Effect 18: Two extremely dense sets of concentric rings overlaid. Moving your mouse shears the top layer, triggering massive architectural optical illusions.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    
+    // Mouse interpolation
+    let targetX = 0, targetY = 0;
+    let mx = 0, my = 0;
+
+    window.addEventListener('mousemove', e => { 
+      // The offset must be very tiny for the Moiré effect to work smoothly without inducing nausea
+      targetX = (e.clientX - window.innerWidth/2) * 0.05; 
+      targetY = (e.clientY - window.innerHeight/2) * 0.05; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      let strokeCol = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)';
+      
+      mx += (targetX - mx) * 0.1;
+      my += (targetY - my) * 0.1;
+
+      let cx = width / 2;
+      let cy = height / 2;
+      
+      let rings = Math.max(width, height) / 4; // High density rings (every 4px)
+
+      ctx.lineWidth = 1.5;
+      
+      // Layer 1 (Static Base)
+      ctx.beginPath();
+      for(let r=10; r<rings * 6; r+=6) {
+        ctx.moveTo(cx + r, cy);
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      }
+      ctx.strokeStyle = strokeCol;
+      ctx.stroke();
+
+      // Layer 2 (Shifted Top Layer)
+      ctx.beginPath();
+      for(let r=10; r<rings * 6; r+=6) {
+        ctx.moveTo(cx + mx + r, cy + my);
+        ctx.arc(cx + mx, cy + my, r, 0, Math.PI * 2);
+      }
+      ctx.strokeStyle = strokeCol;
+      ctx.stroke();
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

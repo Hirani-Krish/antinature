@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 17: Harmonic Pendulums</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.6;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Harmonic Pendulum</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 17: A sequence of independent pendulums swinging in perfect mathematical harmony. Intensely calming and structural.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let pendulums = [];
+    let time = 0;
+
+    // Mouse tracking for parallax camera
+    let targetX = 0;
+    let mx = 0;
+
+    window.addEventListener('mousemove', e => { 
+      targetX = (e.clientX - window.innerWidth/2) * 0.1; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      
+      pendulums = [];
+      const count = window.innerWidth < 768 ? 12 : 24;
+      const spacing = window.innerWidth < 768 ? 40 : 50;
+      
+      let startX = (width - ((count - 1) * spacing)) / 2;
+      
+      for(let i=0; i<count; i++) {
+        // Core harmonic formula: Number of oscillations per timeframe
+        let oscillations = 20 - i * 0.5; // Decrements so they fall out of phase beautifully
+        
+        pendulums.push({
+          ix: startX + i * spacing, // Initial X
+          length: height * 0.3 + (i * 15),
+          frequency: oscillations / 60,
+          phase: 0
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      let fillCol = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)';
+      let lineCol = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+      
+      mx += (targetX - mx) * 0.05;
+
+      time += 0.015;
+
+      // Draw Top Bar
+      ctx.beginPath();
+      ctx.strokeStyle = lineCol;
+      ctx.lineWidth = 2;
+      ctx.moveTo(0, height * 0.1);
+      ctx.lineTo(width, height * 0.1);
+      ctx.stroke();
+
+      pendulums.forEach((p, idx) => {
+        // Swing angle based on harmonic frequency
+        let angle = Math.sin(time * p.frequency * Math.PI) * (Math.PI / 4); // Max 45 degrees
+        
+        // Origin Pivot
+        let ox = p.ix + mx * (idx * 0.2); // Parallax shear based on depth string
+        let oy = height * 0.1;
+        
+        // Pendulum Bob
+        let bx = ox + Math.sin(angle) * p.length;
+        let by = oy + Math.cos(angle) * p.length;
+
+        // Draw String
+        ctx.beginPath();
+        ctx.strokeStyle = lineCol;
+        ctx.lineWidth = 1;
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(bx, by);
+        ctx.stroke();
+
+        // Draw Bob
+        ctx.beginPath();
+        ctx.fillStyle = fillCol;
+        ctx.arc(bx, by, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Depth Blur simulation for the tips (Premium touch)
+        ctx.beginPath();
+        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        ctx.arc(bx, by, 12, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 1: Topographic Liquid Wave</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <!-- The Experimental Canvas -->
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 20vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Topographic Liquid Wave</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 1: An ambient, slow-moving geometric ocean. Mouse movement creates a disruptive ripple wave in the topology.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let time = 0;
+    
+    // Grid settings
+    let rows = 40;
+    let cols = 60;
+    let spacing;
+
+    let mouseX = -1000, mouseY = -1000;
+    window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      spacing = Math.max(width / cols, height / rows * 1.5);
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let themeColor = getComputedStyle(document.body).getPropertyValue('--text-tertiary').trim() || '#8b909e';
+      
+      time += 0.015;
+      
+      ctx.strokeStyle = themeColor;
+      ctx.lineWidth = 1;
+
+      for (let y = 0; y <= rows; y++) {
+        ctx.beginPath();
+        for (let x = 0; x <= cols; x++) {
+          
+          let px = x * spacing;
+          let py = y * (spacing * 0.5) + (height * 0.2); // Start drawing lower on page
+
+          // Base sine wave movement
+          let wave = Math.sin(x * 0.2 + time) * 15;
+          wave += Math.cos(y * 0.15 - time * 0.8) * 15;
+
+          // Mouse distortion
+          let dx = px - mouseX;
+          let dy = py - mouseY;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 300) {
+            let push = (300 - dist) / 300; // 0 to 1
+            wave -= Math.sin(dist * 0.05 - time * 3) * (20 * push);
+          }
+
+          let drawY = py + wave;
+
+          if (x === 0) ctx.moveTo(px, drawY);
+          else ctx.lineTo(px, drawY);
+        }
+        ctx.globalAlpha = (y / rows) * 0.6; // Fade out towards top
+        ctx.stroke();
+      }
+      
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

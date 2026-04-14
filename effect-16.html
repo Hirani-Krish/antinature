@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 16: Kinetic Bauhaus</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.2;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; text-transform: uppercase;">Kinetic Bauhaus</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 16: Stark, minimalist flat vector geometries. Moving your mouse dynamically slides intersecting masking blocks. Perfect for ultra-modern brutalist or Swiss design.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let shapes = [];
+
+    // Smooth dampening for mouse
+    let mx = 0, my = 0;
+    let targetX = 0, targetY = 0;
+
+    window.addEventListener('mousemove', e => { 
+      targetX = (e.clientX / window.innerWidth) * 2 - 1; // -1 to 1
+      targetY = (e.clientY / window.innerHeight) * 2 - 1; // -1 to 1
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      
+      shapes = [
+        { type: 'circle', x: width*0.3, y: height*0.4, size: 200, driftX: 0.1, driftY: -0.05 },
+        { type: 'rect', x: width*0.7, y: height*0.6, w: 400, h: 100, driftX: -0.15, driftY: 0 },
+        { type: 'rect', x: width*0.5, y: height*0.2, w: 100, h: 500, driftX: 0, driftY: 0.1 },
+        { type: 'circle', x: width*0.8, y: height*0.8, size: 120, driftX: -0.05, driftY: -0.1 }
+      ];
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      let fillCol = isDark ? '#ffffff' : '#000000';
+
+      mx += (targetX - mx) * 0.05;
+      my += (targetY - my) * 0.05;
+
+      ctx.fillStyle = fillCol;
+
+      shapes.forEach((s, idx) => {
+        s.x += s.driftX;
+        s.y += s.driftY;
+        
+        // Wrap logic
+        if(s.x < -400) s.x = width + 400; if(s.x > width + 400) s.x = -400;
+        if(s.y < -400) s.y = height + 400; if(s.y > height + 400) s.y = -400;
+
+        let drawX = s.x + (mx * 100 * (idx % 2 === 0 ? 1 : -1));
+        let drawY = s.y + (my * 100 * (idx % 2 === 0 ? -1 : 1));
+
+        ctx.beginPath();
+        if (s.type === 'circle') {
+          ctx.arc(drawX, drawY, s.size, 0, Math.PI * 2);
+        } else {
+          ctx.rect(drawX - s.w/2, drawY - s.h/2, s.w, s.h);
+        }
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

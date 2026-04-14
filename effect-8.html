@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 8: Kinetic Typography</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.4;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 15vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Kinetic Typography</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 8: A rigid typographic matrix that physically shatters and scatters when your mouse crashes into it.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let letters = [];
+    const textWord = "ANTINATURE  TOOLS  ";
+
+    let mouseX = -1000, mouseY = -1000;
+    let pmouseX = -1000, pmouseY = -1000;
+
+    window.addEventListener('mousemove', e => { 
+      pmouseX = mouseX; pmouseY = mouseY;
+      mouseX = e.clientX; mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      letters = [];
+      
+      const fontSize = window.innerWidth < 768 ? 20 : 35;
+      ctx.font = `bold ${fontSize}px var(--font-family)`;
+      let ySpacing = fontSize * 1.2;
+      
+      let rows = Math.ceil(height / ySpacing) + 1;
+      let charsPerRow = Math.ceil(width / (fontSize * 0.6)) + 5;
+      
+      let charIndex = 0;
+      for(let y=0; y<rows; y++) {
+        let currentX = 0;
+        for(let x=0; x<charsPerRow; x++) {
+          let char = textWord[charIndex % textWord.length];
+          let w = ctx.measureText(char).width;
+          
+          letters.push({
+            char: char,
+            ox: currentX, // Origin X
+            oy: y * ySpacing, // Origin Y
+            x: currentX,
+            y: y * ySpacing,
+            vx: 0, vy: 0,
+            angle: 0, va: 0
+          });
+          currentX += w;
+          charIndex++;
+        }
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    // Init after fonts are loaded
+    setTimeout(init, 100);
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let themeColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim() || '#000';
+      ctx.fillStyle = themeColor;
+      // Get font size based on current layout
+      const fontSize = window.innerWidth < 768 ? 20 : 35;
+      ctx.font = `bold ${fontSize}px var(--font-family)`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+
+      let mouseSpeedX = mouseX - pmouseX;
+      let mouseSpeedY = mouseY - pmouseY;
+      let mouseSpeed = Math.sqrt(mouseSpeedX*mouseSpeedX + mouseSpeedY*mouseSpeedY);
+
+      letters.forEach(p => {
+        // Elasticity to origin
+        let ex = p.ox - p.x;
+        let ey = p.oy - p.y;
+        p.vx += ex * 0.05;
+        p.vy += ey * 0.05;
+        p.va += -p.angle * 0.05;
+
+        // Mouse collision smash
+        let dx = p.x - mouseX;
+        let dy = p.y - mouseY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist < 100 && mouseSpeed > 2) {
+          let push = (100 - dist) / 100;
+          p.vx += (dx / dist) * push * mouseSpeed * 0.5;
+          p.vy += (dy / dist) * push * mouseSpeed * 0.5;
+          p.va += (Math.random() - 0.5) * mouseSpeed * 0.05; // Spin on impact
+        }
+
+        p.vx *= 0.85; p.vy *= 0.85; p.va *= 0.85;
+        p.x += p.vx; p.y += p.vy; p.angle += p.va;
+
+        if (Math.abs(p.x - p.ox) < 0.1 && Math.abs(p.y - p.oy) < 0.1 && Math.abs(p.angle) < 0.01) {
+          // Optimization: If it's resting at origin, draw normal
+          ctx.fillText(p.char, p.ox, p.oy);
+        } else {
+          // Draw with rotation
+          ctx.save();
+          ctx.translate(p.x + fontSize/2, p.y + fontSize/2);
+          ctx.rotate(p.angle);
+          ctx.fillText(p.char, -fontSize/2, -fontSize/2);
+          ctx.restore();
+        }
+      });
+
+      pmouseX = mouseX; pmouseY = mouseY;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

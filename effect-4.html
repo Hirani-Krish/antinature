@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Effect 4: Interactive Matrix Tunnel</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <!-- The Experimental Canvas -->
+  <canvas id="bg-canvas" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; opacity: 0.8;"></canvas>
+
+  <nav class="navbar"></nav>
+  <script src="js/navbar.js"></script>
+
+  <main class="page">
+    <div class="container" style="text-align: center; margin-top: 20vh;">
+      <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -0.04em;">Infinite Data Tunnel</h1>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: var(--space-md) auto;">
+        Effect 4: An infinite sequence of characters flying out from a central vanishing point. Moving your mouse steers the camera.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let points = [];
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?#&@";
+
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    window.addEventListener('mousemove', e => { 
+      mouseX = e.clientX; 
+      mouseY = e.clientY; 
+    });
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      
+      points = [];
+      const count = window.innerWidth < 768 ? 150 : 300;
+      
+      for(let i=0; i<count; i++) {
+        points.push({
+          x: (Math.random() - 0.5) * 3000, // Wide X spread in 3D space
+          y: (Math.random() - 0.5) * 3000, // Wide Y spread in 3D space
+          z: Math.random() * 2000,         // Z depth (far away)
+          char: characters[Math.floor(Math.random() * characters.length)]
+        });
+      }
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      // Calculate camera vanishing point loosely based on mouse
+      // The tunnel bends towards where the cursor points
+      let targetVX = width / 2 + (width / 2 - mouseX) * 0.5;
+      let targetVY = height / 2 + (height / 2 - mouseY) * 0.5;
+      
+      ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      points.forEach(p => {
+        // Move towards camera
+        p.z -= 10; 
+        
+        // Reset if it flies past the screen
+        if (p.z <= 0) {
+          p.z = 2000;
+          p.x = (Math.random() - 0.5) * 3000;
+          p.y = (Math.random() - 0.5) * 3000;
+        }
+
+        // 3D to 2D Projection using focal length
+        const focalLength = 300;
+        let scale = focalLength / (focalLength + p.z);
+        
+        // Find 2D screen coordinates
+        let x2d = targetVX + p.x * scale;
+        let y2d = targetVY + p.y * scale;
+        
+        // Only draw if on screen
+        if (x2d >= 0 && x2d <= width && y2d >= 0 && y2d <= height) {
+          ctx.font = `bold ${Math.max(1, 40 * scale)}px monospace`;
+          
+          // Distance fading so things far away are invisible
+          let alpha = 1 - (p.z / 2000);
+          ctx.globalAlpha = alpha * 0.6; // Max opacity 0.6
+          
+          ctx.fillText(p.char, x2d, y2d);
+        }
+      });
+      
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
